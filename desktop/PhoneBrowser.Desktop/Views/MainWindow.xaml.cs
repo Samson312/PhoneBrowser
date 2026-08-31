@@ -9,6 +9,12 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        DataContext = new MainViewModel();
+        var vm = new MainViewModel();
+
+        DataContext = vm;
+
+        vm.StartListening();
+
+        Closed += (_, _) => vm.Dispose();
     }
 }
