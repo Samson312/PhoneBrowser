@@ -1,12 +1,12 @@
-package com.phonebrowser.app
+package com.phonebrowser.app.viewmodels
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.phonebrowser.app.discovery.UdpDiscoveryService
+import com.phonebrowser.app.services.discovery.UdpDiscoveryService
 
 class MainViewModel : ViewModel() {
     var statusText by mutableStateOf("Gotowy")
