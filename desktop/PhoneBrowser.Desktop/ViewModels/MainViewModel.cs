@@ -3,6 +3,7 @@
 using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Discovery;
 
 public partial class MainViewModel : ObservableObject, IDisposable
@@ -18,6 +19,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public MainViewModel()
 	{
 		discoveryService = new UdpDiscoveryService();
+		discoveryService.DeviceDiscovered += OnDeviceDiscovered;
 	}
 
 	public void AddLogEntry(string message)
@@ -28,35 +30,24 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
 	public void StartListening()
 	{
-		_ = ListenLoop(cts.Token);
-	}
+		_ = discoveryService.StartAsync(cts.Token);
+		StatusText = "Nasłuchiwanie UDP...";
+    }
 
     public void Dispose()
     {
+		discoveryService.DeviceDiscovered -= OnDeviceDiscovered;
         cts.Cancel();
         discoveryService.Dispose();
         cts.Dispose();
     }
 
-    private async Task ListenLoop(CancellationToken ct)
+	private async void OnDeviceDiscovered(DiscoveredDevice device)
 	{
-        StatusText = "Nasłuchiwanie UDP...";
+		AddLogEntry(device.DeviceName);
 
-		try
-		{
-			while (!ct.IsCancellationRequested)
-			{
-				var device = await discoveryService.Listen(ct);
-				AddLogEntry(device.DeviceName);
-			}
-		}
-		catch (OperationCanceledException)
-		{
-            StatusText = "Nasłuchiwanie zakończone";
-        }
-		catch (Exception ex)
-		{
-            StatusText = $"Błąd nasłuchu: {ex.Message}";
-        }
-    }
+		await discoveryService.SendPairReplayAsync(device, 54321);
+
+		AddLogEntry($"Wysłano PAIR_REPLY do {device.IpAddress}:{device.Port}, port TCP {54321}");
+	}
 }

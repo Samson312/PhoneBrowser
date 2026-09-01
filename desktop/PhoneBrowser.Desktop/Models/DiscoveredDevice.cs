@@ -6,5 +6,6 @@ using System.Net;
 public record DiscoveredDevice
 (
     IPAddress IpAddress,
+    int Port,
     string DeviceName
 );
