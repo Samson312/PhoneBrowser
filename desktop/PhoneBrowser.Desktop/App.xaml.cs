@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PhoneBrowser.Desktop.Services.Discovery;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Services.Pairing;
+using PhoneBrowser.Desktop.Storage;
 using PhoneBrowser.Desktop.ViewModels;
 using PhoneBrowser.Desktop.Views;
 using System.Windows;
@@ -21,6 +22,7 @@ public partial class App : Application
 
         var services = new ServiceCollection();
 
+        services.AddSingleton<ILocalStore, LiteDbLocalStore>();
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<MainViewModel>();
 
