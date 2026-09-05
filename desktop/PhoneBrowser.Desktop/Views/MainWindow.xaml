@@ -9,6 +9,10 @@
         <DataTemplate DataType="{x:Type vm:PairingViewModel}">
             <views:PairingView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:InitialConfigurationViewModel}">
+            <views:InitialConfigurationView/>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid Margin="20">

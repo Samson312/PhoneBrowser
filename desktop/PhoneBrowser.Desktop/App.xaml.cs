@@ -29,6 +29,7 @@ public partial class App : Application
         services.AddTransient<IUdpDiscoveryService, UdpDiscoveryService>();
         services.AddTransient<IPairingService, PairingService>();
 
+        services.AddTransient<InitialConfigurationViewModel>();
         services.AddTransient<PairingViewModel>();
 
         Services = services.BuildServiceProvider();
