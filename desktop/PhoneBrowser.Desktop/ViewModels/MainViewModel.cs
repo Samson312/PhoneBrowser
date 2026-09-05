@@ -15,10 +15,13 @@ public partial class MainViewModel : ViewModelBase
     {
         navigation.CurrentViewModelChanged += vm => CurrentViewModel = vm;
 
+        navigation.NavigateTo<InitialConfigurationViewModel>();
+        return;
+
 
         if (store.HasSettingsProfile())
         {
-            navigation.NavigateTo<PairingViewModel>();
+            navigation.NavigateTo<HomeViewModel>();
         }
         else
         {

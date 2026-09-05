@@ -49,7 +49,7 @@ public partial class InitialConfigurationViewModel: ViewModelBase
     {
         if (SaveData())
         {
-            navigation.NavigateTo<PairingViewModel>();
+            navigation.NavigateTo<HomeViewModel>();
         }
     }
 }

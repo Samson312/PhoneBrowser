@@ -30,6 +30,7 @@ public partial class App : Application
         services.AddTransient<IPairingService, PairingService>();
 
         services.AddTransient<InitialConfigurationViewModel>();
+        services.AddTransient<HomeViewModel>();
         services.AddTransient<PairingViewModel>();
 
         Services = services.BuildServiceProvider();
