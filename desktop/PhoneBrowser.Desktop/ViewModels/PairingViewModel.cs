@@ -27,7 +27,7 @@ public partial class PairingViewModel : ViewModelBase
     [ObservableProperty]
     private DiscoveredDevice? pairedDevice;
 
-    public bool CanGoNext => PairedDevice != null;
+    public bool IsPaired => PairedDevice != null;
 
     public PairingViewModel(
         IUdpDiscoveryService discoveryService,
@@ -61,10 +61,12 @@ public partial class PairingViewModel : ViewModelBase
     [RelayCommand]
     private async Task PairAsync(DiscoveredDevice device)
     {
-        if (!pairingInFlight.Add(device.DeviceId))
-            return;
+        if (IsPaired && PairedDevice?.DeviceId == device.DeviceId) return;
 
+        if (!pairingInFlight.Add(device.DeviceId))
+        return;
         
+
         var token = await pairingService.PairAsync(device, cts.Token);
 
         if (token != null)
@@ -80,6 +82,6 @@ public partial class PairingViewModel : ViewModelBase
     [RelayCommand]
     private void Back() => navigation.GoBack();
 
-    [RelayCommand(CanExecute = nameof(CanGoNext))]
+    [RelayCommand(CanExecute = nameof(IsPaired))]
     private void Next() {}
 }
