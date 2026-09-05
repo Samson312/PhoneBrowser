@@ -2,7 +2,7 @@
 
 namespace PhoneBrowser.Desktop.Models;
 
-public record DiscoveryMessage(string Type, string? DeviceName = null, int? TcpPort = null)
+public record DiscoveryMessage(string deviceId, string deviceName, string type = "DISCOVER", string platform = "PC", int? httpPort = null, int protocolVersion = 1)
 {
     private static readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions
     {

@@ -9,7 +9,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        var vm = new MainViewModel();
+        var vm = new PairingViewModel();
 
         DataContext = vm;
 
