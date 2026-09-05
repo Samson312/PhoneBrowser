@@ -27,19 +27,24 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen(viewModel: MainViewModel = viewModel()) {
+    val pairingRequest = viewModel.pairingRequest
+
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(text = viewModel.statusText, style = MaterialTheme.typography.headlineSmall)
-        Spacer(modifier = Modifier.height(16.dp))
-        Row {
-            Button(onClick = { viewModel.startDiscovery() }) { Text("Start") }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { viewModel.stopDiscovery() }) { Text("Stop") }
-        }
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn {
             items(viewModel.logEntries) { entry ->
                 Text(entry, style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+
+    if (pairingRequest != null) {
+        AlertDialog(
+            onDismissRequest = { /* zgodnie z zasadą 6/9: wymagamy jawnej decyzji */ },
+            title = { Text("${pairingRequest.requesterName} chce się połączyć") },
+            text = { Text("To urządzenie chce przesyłać i pobierać zdjęcia z tego telefonu.") },
+            confirmButton = { TextButton(onClick = { viewModel.acceptPairing() }) { Text("Akceptuj") } },
+            dismissButton = { TextButton(onClick = { viewModel.rejectPairing() }) { Text("Odrzuć") } }
+        )
     }
 }

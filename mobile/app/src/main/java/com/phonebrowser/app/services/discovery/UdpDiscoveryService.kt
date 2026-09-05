@@ -1,55 +1,66 @@
 package com.phonebrowser.app.services.discovery
 
-import android.os.Build
 import com.phonebrowser.app.models.DiscoveryMessage
 import kotlinx.coroutines.*
 import java.net.DatagramPacket
 import java.net.DatagramSocket
-import java.net.InetAddress
 import java.net.SocketTimeoutException
 
-class UdpDiscoveryService(private val port: Int = 2000) {
+class UdpDiscoveryService(private val httpPort: Int){
     private var job: Job? = null
 
+    private val port:Int = 47821
+
     fun startBroadcasting(scope: CoroutineScope, onLog: (String) -> Unit){
+        if(job?.isActive == true) return
+
         job = scope.launch(Dispatchers.IO) {
-            val socket = DatagramSocket().apply {
-                broadcast = true
-                soTimeout = 2000
+            val socket = DatagramSocket(port).apply{
+                soTimeout = 1000
             }
-
-            val broadcastAddress = InetAddress.getByName("255.255.255.255")
-            val broadcastMessage = DiscoveryMessage(type = "BROADCAST", deviceName = Build.BRAND)
-
-            val data = broadcastMessage.toJson().toByteArray()
 
             try {
                 while (isActive) {
-                    socket.send(DatagramPacket(data, data.size, broadcastAddress, port))
-                    withContext(Dispatchers.Main) { onLog("Wysłano: ${broadcastMessage.deviceName}") }
-
                     val buffer = ByteArray(1024)
-                    val replyPacket = DatagramPacket(buffer, buffer.size)
+                    val packet = DatagramPacket(buffer, buffer.size)
+
                     try {
-                        socket.receive(replyPacket)
-                        val raw = String(replyPacket.data, 0, replyPacket.length)
+                        socket.receive(packet)
+                    } catch (e: SocketTimeoutException) {
+                        continue // normalne budzenie się, żeby sprawdzić isActive
+                    }
 
-                        val message = try {
-                            DiscoveryMessage.fromJson(raw)
-                        } catch (e: Exception) {
-                            withContext(Dispatchers.Main) { onLog("Nieprawidłowa wiadomość: $raw") }
-                            null
-                        }
+                    val raw = String(packet.data, 0, packet.length)
 
-                        if (message?.type == "PAIR_REPLY" && message.tcpPort != null) {
-                            withContext(Dispatchers.Main) {
-                                onLog("Znaleziono desktop: ${replyPacket.address}:${message.tcpPort}")
-                            }
-                            break
-                        } else if (message != null) {
+
+                    val message = try {
+                        DiscoveryMessage.fromJson(raw)
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) { onLog("Nieprawidłowa wiadomość: $raw") }
+                        null
+                    }
+
+                    if (message?.type != "DISCOVER") {
+                        if (message != null) {
                             withContext(Dispatchers.Main) { onLog("Zignorowano: ${message.type}") }
                         }
-                    } catch (e: SocketTimeoutException) { }
+                        continue
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        onLog("Znaleziono ${message.deviceName}: ${packet.address}")
+                    }
+
+                    var reply = DiscoveryMessage(
+                        deviceId = "Phone",
+                        deviceName = "Phone",
+                        httpPort = httpPort
+                    )
+
+                    var data = reply.toJson().toByteArray()
+
+                    socket.send(DatagramPacket(data, data.size, packet.address, packet.port))
+                    withContext(Dispatchers.Main) { onLog("Wysłano: ${reply.type}|${message.httpPort}") }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { onLog("Błąd: ${e.message}") }
