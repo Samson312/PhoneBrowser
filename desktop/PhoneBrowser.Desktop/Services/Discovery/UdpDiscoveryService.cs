@@ -1,6 +1,7 @@
 ﻿namespace PhoneBrowser.Desktop.Services.Discovery;
 
 using PhoneBrowser.Desktop.Models;
+using PhoneBrowser.Desktop.Storage;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -15,13 +16,18 @@ internal class UdpDiscoveryService : IUdpDiscoveryService
 
     private readonly UdpClient udpClient;
 
+    private SettingsProfile settings;
+
     private CancellationTokenSource? internalCts;
 
     public event Action<DiscoveredDevice>? DeviceDiscovered;
 
-    public UdpDiscoveryService()
+    public UdpDiscoveryService(
+        ILocalStore store)
     {
         udpClient = new UdpClient(PORT);
+
+        settings = store.GetSettingsProfile();
     }
 
     public async Task StartAsync(CancellationToken ct = default)
@@ -92,7 +98,7 @@ internal class UdpDiscoveryService : IUdpDiscoveryService
 
     public async Task SendDiscoveryAsync()
     {
-        var message = new DiscoveryMessage("test", "Komputer");
+        var message = new DiscoveryMessage(settings.Id, settings.DeviceName);
 
         var json = message.ToJson();
 

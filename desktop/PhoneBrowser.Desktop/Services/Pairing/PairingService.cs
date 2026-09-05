@@ -3,17 +3,19 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using PhoneBrowser.Desktop.Models;
+using PhoneBrowser.Desktop.Storage;
 
 internal class PairingService: IPairingService
 {
     private readonly HttpClient http = new() { };
-    private readonly string ownDeviceId;
-    private readonly string ownDeviceName;
 
-    public PairingService()
+    private SettingsProfile settings;
+
+    public PairingService(
+        ILocalStore store
+        )
     {
-        this.ownDeviceId = "test";
-        this.ownDeviceName = "Komputer";
+        settings = store.GetSettingsProfile();
     }
 
     public async Task<string?> PairAsync(DiscoveredDevice device, CancellationToken ct)
@@ -23,7 +25,7 @@ internal class PairingService: IPairingService
 
         var request = new PairingRequestDto(
             requestId,
-            new DeviceInfoDto(ownDeviceId, ownDeviceName, "Windows", 1) 
+            new DeviceInfoDto(settings.Id, settings.DeviceName, "Windows", 1) 
         );
 
         var postResponse = await http.PostAsJsonAsync($"{baseUrl}/pairing/request", request, ct);
