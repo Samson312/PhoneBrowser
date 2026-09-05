@@ -4,16 +4,16 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using PhoneBrowser.Desktop.Models;
 
-internal class PairingService
+internal class PairingService: IPairingService
 {
     private readonly HttpClient http = new() { };
     private readonly string ownDeviceId;
     private readonly string ownDeviceName;
 
-    public PairingService(string ownDeviceId, string ownDeviceName)
+    public PairingService()
     {
-        this.ownDeviceId = ownDeviceId;
-        this.ownDeviceName = ownDeviceName;
+        this.ownDeviceId = "test";
+        this.ownDeviceName = "Komputer";
     }
 
     public async Task<string?> PairAsync(DiscoveredDevice device, CancellationToken ct)

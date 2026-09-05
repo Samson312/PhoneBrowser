@@ -4,16 +4,19 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Discovery;
+using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Services.Pairing;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 
-public partial class PairingViewModel : ObservableObject, IDisposable
+public partial class PairingViewModel : ViewModelBase
 {
-	private readonly UdpDiscoveryService discoveryService;
+	private readonly IUdpDiscoveryService discoveryService;
 
-	private readonly PairingService pairingService;
+	private readonly IPairingService pairingService;
+
+    private readonly INavigationService navigation;
 
     private readonly HashSet<string> pairingInFlight = new();
 
@@ -26,24 +29,22 @@ public partial class PairingViewModel : ObservableObject, IDisposable
 
     public bool CanGoNext => PairedDevice != null;
 
-    public PairingViewModel()
+    public PairingViewModel(
+        IUdpDiscoveryService discoveryService,
+        IPairingService pairingService,
+        INavigationService navigation)
 	{
-		discoveryService = new UdpDiscoveryService();
+        this.discoveryService = discoveryService;
+        this.pairingService = pairingService;
+        this.navigation = navigation;
+
 		discoveryService.DeviceDiscovered += OnDeviceDiscovered;
 
-		pairingService = new PairingService("test", "PC");
+
+        discoveryService.StartAsync(cts.Token);
     }
 
-	public async void StartListening()
-	{
-        try
-        {
-            await discoveryService.StartAsync(cts.Token);
-        }
-        catch (Exception ex){ }
-    }
-
-    public void Dispose()
+    public override void Dispose()
     {
 		discoveryService.DeviceDiscovered -= OnDeviceDiscovered;
         cts.Cancel();
@@ -51,7 +52,7 @@ public partial class PairingViewModel : ObservableObject, IDisposable
         cts.Dispose();
     }
 
-	private async void OnDeviceDiscovered(DiscoveredDevice device)
+	private void OnDeviceDiscovered(DiscoveredDevice device)
 	{
         if (!DevicesDiscovered.Any(d => d.DeviceId == device.DeviceId))
             DevicesDiscovered.Add(device);
@@ -63,13 +64,22 @@ public partial class PairingViewModel : ObservableObject, IDisposable
         if (!pairingInFlight.Add(device.DeviceId))
             return;
 
+        
         var token = await pairingService.PairAsync(device, cts.Token);
 
         if (token != null)
         {
             PairedDevice = device;
-            OnPropertyChanged(nameof(CanGoNext));
+            NextCommand.NotifyCanExecuteChanged();
             discoveryService.Stop();
         }
+        
+        pairingInFlight.Remove(device.DeviceId);
     }
+
+    [RelayCommand]
+    private void Back() => navigation.GoBack();
+
+    [RelayCommand(CanExecute = nameof(CanGoNext))]
+    private void Next() {}
 }

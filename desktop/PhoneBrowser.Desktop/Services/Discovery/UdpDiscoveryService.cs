@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Timers;
 
-internal class UdpDiscoveryService : IDisposable
+internal class UdpDiscoveryService : IUdpDiscoveryService
 {
     private const int PORT = 47821;
 
