@@ -1,7 +1,9 @@
 package com.phonebrowser.app.services.discovery
 
 import com.phonebrowser.app.models.DiscoveryMessage
+import com.phonebrowser.app.storage.SettingsRepository
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketTimeoutException
@@ -9,7 +11,8 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class UdpDiscoveryService @Inject constructor(
-    @Named("httpPort") private val httpPort: Int
+    @Named("httpPort") private val httpPort: Int,
+    private val settingsRepository: SettingsRepository
 ){
     private var job: Job? = null
 
@@ -55,9 +58,11 @@ class UdpDiscoveryService @Inject constructor(
                         onLog("Znaleziono ${message.deviceName}: ${packet.address}")
                     }
 
+                    val settings = settingsRepository.settingsFlow.first()
+
                     var reply = DiscoveryMessage(
-                        deviceId = "Phone",
-                        deviceName = "Phone",
+                        deviceId = settings.deviceId,
+                        deviceName = settings.deviceName,
                         httpPort = httpPort
                     )
 
