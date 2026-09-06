@@ -15,8 +15,12 @@ import io.ktor.server.routing.*
 import io.ktor.server.plugins.statuspages.*
 
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
+import javax.inject.Named
 
-class PhoneBrowserHttpServer(private val port: Int) {
+class PhoneBrowserHttpServer @Inject constructor(
+    @Named("httpPort") private val port: Int
+) {
 
     private var server: EmbeddedServer<*, *>? = null
 

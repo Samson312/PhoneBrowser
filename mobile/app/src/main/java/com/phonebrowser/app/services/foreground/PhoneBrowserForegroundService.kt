@@ -11,22 +11,18 @@ import androidx.core.app.ServiceCompat
 import com.phonebrowser.app.MainActivity
 import com.phonebrowser.app.services.http.PhoneBrowserHttpServer
 import com.phonebrowser.app.services.discovery.UdpDiscoveryService
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
 
+@AndroidEntryPoint
 class PhoneBrowserForegroundService: Service() {
 
+    @Inject lateinit var httpServer: PhoneBrowserHttpServer
+    @Inject lateinit var udpDiscovery: UdpDiscoveryService
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    private val httpPort = 8787
-    private lateinit var httpServer: PhoneBrowserHttpServer
-    private lateinit var udpDiscovery: UdpDiscoveryService
-
-    override fun onCreate() {
-        super.onCreate()
-        httpServer = PhoneBrowserHttpServer(httpPort)
-        udpDiscovery = UdpDiscoveryService(httpPort)
-    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP_DISCOVERY) {

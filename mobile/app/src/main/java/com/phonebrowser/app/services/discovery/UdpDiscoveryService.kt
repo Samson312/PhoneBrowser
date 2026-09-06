@@ -5,8 +5,12 @@ import kotlinx.coroutines.*
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketTimeoutException
+import javax.inject.Inject
+import javax.inject.Named
 
-class UdpDiscoveryService(private val httpPort: Int){
+class UdpDiscoveryService @Inject constructor(
+    @Named("httpPort") private val httpPort: Int
+){
     private var job: Job? = null
 
     private val port:Int = 47821
@@ -27,7 +31,7 @@ class UdpDiscoveryService(private val httpPort: Int){
                     try {
                         socket.receive(packet)
                     } catch (e: SocketTimeoutException) {
-                        continue // normalne budzenie się, żeby sprawdzić isActive
+                        continue
                     }
 
                     val raw = String(packet.data, 0, packet.length)
