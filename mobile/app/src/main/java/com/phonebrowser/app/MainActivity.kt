@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.phonebrowser.app.ui.theme.PhoneBrowserMobileTheme
-import com.phonebrowser.app.ui.home.MainScreen
+import com.phonebrowser.app.ui.nav.AppNavigation
 
 
 class MainActivity : ComponentActivity() {
@@ -12,7 +12,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PhoneBrowserMobileTheme {
-                MainScreen()
+                AppNavigation()
             }
         }
     }

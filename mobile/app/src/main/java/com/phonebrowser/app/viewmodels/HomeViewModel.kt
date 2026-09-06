@@ -12,9 +12,8 @@ import com.phonebrowser.app.services.pairing.PairingEntry
 import com.phonebrowser.app.services.pairing.PairingManager
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import java.util.UUID
 
-class MainViewModel : ViewModel() {
+class HomeViewModel : ViewModel() {
     val logEntries = mutableStateListOf<String>()
     private val httpPort: Int = 8787
 

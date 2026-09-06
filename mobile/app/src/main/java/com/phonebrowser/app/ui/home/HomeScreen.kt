@@ -15,10 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.phonebrowser.app.viewmodels.MainViewModel
+import com.phonebrowser.app.viewmodels.HomeViewModel
 
 @Composable
-fun MainScreen(viewModel: MainViewModel = viewModel()) {
+fun MainScreen(viewModel: HomeViewModel = viewModel()) {
     val pairingRequest = viewModel.pairingRequest
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
