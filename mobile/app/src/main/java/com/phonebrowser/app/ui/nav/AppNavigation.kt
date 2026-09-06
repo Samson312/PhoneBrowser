@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.phonebrowser.app.ui.home.MainScreen
+import com.phonebrowser.app.ui.home.HomeScreen
 
 @Composable
 fun AppNavigation(
@@ -21,7 +21,7 @@ fun AppNavigation(
     ){
         composable(Route.Home.route)
         {
-            MainScreen()
+            HomeScreen()
         }
     }
 }

@@ -18,7 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.phonebrowser.app.viewmodels.HomeViewModel
 
 @Composable
-fun MainScreen(viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
     val pairingRequest = viewModel.pairingRequest
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
