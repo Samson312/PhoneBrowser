@@ -48,7 +48,7 @@ class PhoneBrowserHttpServer @Inject constructor(
                         requesterDeviceId = body.requester.deviceId,
                         requesterName = body.requester.deviceName
                     )
-                    // Wg architektury: 202 natychmiast, bez czekania na decyzję użytkownika
+
                     call.respond(
                         HttpStatusCode.Accepted,
                         PairingStatusResponseDto(requestId = body.requestId, status = "Pending")
