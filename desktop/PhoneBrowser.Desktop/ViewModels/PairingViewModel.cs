@@ -6,6 +6,7 @@ using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Discovery;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Services.Pairing;
+using PhoneBrowser.Desktop.Storage;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -17,6 +18,8 @@ public partial class PairingViewModel : ViewModelBase
 	private readonly IPairingService pairingService;
 
     private readonly INavigationService navigation;
+
+    private readonly ILocalStore store;
 
     private readonly HashSet<string> pairingInFlight = new();
 
@@ -32,11 +35,13 @@ public partial class PairingViewModel : ViewModelBase
     public PairingViewModel(
         IUdpDiscoveryService discoveryService,
         IPairingService pairingService,
-        INavigationService navigation)
+        INavigationService navigation,
+        ILocalStore store)
 	{
         this.discoveryService = discoveryService;
         this.pairingService = pairingService;
         this.navigation = navigation;
+        this.store = store;
 
 		discoveryService.DeviceDiscovered += OnDeviceDiscovered;
 
@@ -73,10 +78,34 @@ public partial class PairingViewModel : ViewModelBase
         {
             PairedDevice = device;
             NextCommand.NotifyCanExecuteChanged();
+            AddTrustedDevice(device, token);
             discoveryService.Stop();
         }
         
         pairingInFlight.Remove(device.DeviceId);
+    }
+
+    private void AddTrustedDevice(DiscoveredDevice device, string token)
+    {
+        var trustedDevice = new TrustedDevice
+        {
+            Id = device.DeviceId,
+            Name = device.DeviceName,
+            Platform = device.Platform,
+            PairingToken = token,
+            LastKnownIpAddress = device.IpAddress.ToString(),
+            LastKnownPort = device.HttpPort,
+            LastConnectedAt = DateTime.UtcNow
+        };
+
+        try
+        {
+            store.SaveTrustedDevice(trustedDevice);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
     }
 
     [RelayCommand]
