@@ -27,7 +27,7 @@ class PhoneBrowserForegroundService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP_DISCOVERY) {
             udpDiscovery.stop()
-            return START_STICKY
+            return START_NOT_STICKY
         }
 
         ServiceCompat.startForeground(
@@ -42,7 +42,12 @@ class PhoneBrowserForegroundService: Service() {
             android.util.Log.d("DiscoveryService", entry)
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        stopSelf()
     }
 
     override fun onDestroy() {
