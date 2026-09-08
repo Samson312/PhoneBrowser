@@ -7,15 +7,17 @@ using PhoneBrowser.Desktop.Storage;
 
 internal class PairingService: IPairingService
 {
-    private readonly HttpClient http = new() { };
+    private readonly HttpClient httpClient;
 
     private SettingsProfile settings;
 
     public PairingService(
-        ILocalStore store
+        ILocalStore store,
+        IHttpClientFactory httpClientFactory
         )
     {
         settings = store.GetSettingsProfile();
+        httpClient = httpClientFactory.CreateClient();
     }
 
     public async Task<string?> PairAsync(DiscoveredDevice device, CancellationToken ct)
@@ -28,7 +30,7 @@ internal class PairingService: IPairingService
             new DeviceInfoDto(settings.Id, settings.DeviceName, 1) 
         );
 
-        var postResponse = await http.PostAsJsonAsync($"{baseUrl}/pairing/request", request, ct);
+        var postResponse = await httpClient.PostAsJsonAsync($"{baseUrl}/pairing/request", request, ct);
         if (!postResponse.IsSuccessStatusCode)
             return null;
 
@@ -37,7 +39,7 @@ internal class PairingService: IPairingService
         {
             await Task.Delay(1000, ct);
 
-            var statusResponse = await http.GetFromJsonAsync<PairingStatusResponseDto>(
+            var statusResponse = await httpClient.GetFromJsonAsync<PairingStatusResponseDto>(
                 $"{baseUrl}/pairing/status/{requestId}", ct);
 
             if (statusResponse is null) continue;
