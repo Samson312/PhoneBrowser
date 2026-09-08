@@ -25,6 +25,7 @@ public partial class App : Application
         services.AddSingleton<ILocalStore, LiteDbLocalStore>();
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<MainViewModel>();
+        services.AddSingleton<PairedDeviceService>();
         services.AddHttpClient();
 
         services.AddTransient<IUdpDiscoveryService, UdpDiscoveryService>();

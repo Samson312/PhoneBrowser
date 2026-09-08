@@ -21,27 +21,26 @@ public partial class PairingViewModel : ViewModelBase
 
     private readonly ILocalStore store;
 
+    private readonly PairedDeviceService pairedDevice;
+
     private readonly HashSet<string> pairingInFlight = new();
 
     private readonly CancellationTokenSource cts = new();
 
 	public ObservableCollection<DiscoveredDevice> DevicesDiscovered { get; } = new();
 
-    [ObservableProperty]
-    private DiscoveredDevice? pairedDevice;
-
-    public bool IsPaired => PairedDevice != null;
-
     public PairingViewModel(
         IUdpDiscoveryService discoveryService,
         IPairingService pairingService,
         INavigationService navigation,
-        ILocalStore store)
+        ILocalStore store,
+        PairedDeviceService pairedDevice)
 	{
         this.discoveryService = discoveryService;
         this.pairingService = pairingService;
         this.navigation = navigation;
         this.store = store;
+        this.pairedDevice = pairedDevice;
 
 		discoveryService.DeviceDiscovered += OnDeviceDiscovered;
 
@@ -66,7 +65,7 @@ public partial class PairingViewModel : ViewModelBase
     [RelayCommand]
     private async Task PairAsync(DiscoveredDevice device)
     {
-        if (IsPaired && PairedDevice?.DeviceId == device.DeviceId) return;
+        if (pairedDevice.IsPaired) return;
 
         if (!pairingInFlight.Add(device.DeviceId))
         return;
@@ -76,7 +75,7 @@ public partial class PairingViewModel : ViewModelBase
 
         if (token != null)
         {
-            PairedDevice = device;
+            pairedDevice?.SetDevice(device, token);
             NextCommand.NotifyCanExecuteChanged();
             AddTrustedDevice(device, token);
             discoveryService.Stop();
@@ -107,9 +106,11 @@ public partial class PairingViewModel : ViewModelBase
         }
     }
 
+    private bool CanGoNext => pairedDevice.IsPaired;
+
     [RelayCommand]
     private void Back() => navigation.GoBack();
 
-    [RelayCommand(CanExecute = nameof(IsPaired))]
     private void Next() {}
+    [RelayCommand(CanExecute = nameof(CanGoNext))]
 }
