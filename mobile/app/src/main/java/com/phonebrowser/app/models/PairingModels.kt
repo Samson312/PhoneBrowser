@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 data class DeviceInfoDto(
     val deviceId: String,
     val deviceName: String,
-    val platform: String,
     val protocolVersion: Int,
 )
 

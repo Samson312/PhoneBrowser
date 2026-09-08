@@ -49,7 +49,6 @@ class PairingViewModel @Inject constructor(
                 TrustedDeviceEntity(
                     deviceId = accepted.requesterDeviceId,
                     deviceName = accepted.requesterName,
-                    platform = "Windows",
                     pairingToken = accepted.token.orEmpty(),
                     lastConnectedAt = System.currentTimeMillis()
                 )

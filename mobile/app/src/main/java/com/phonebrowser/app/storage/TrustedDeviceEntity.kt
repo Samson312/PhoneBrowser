@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 data class TrustedDeviceEntity(
     @PrimaryKey val deviceId: String,
     val deviceName: String,
-    val platform: String,
     val pairingToken: String,
     val lastConnectedAt: Long
 )
