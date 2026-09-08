@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.phonebrowser.app.services.foreground.PhoneBrowserForegroundService
 import com.phonebrowser.app.services.pairing.PairingEntry
 import com.phonebrowser.app.services.pairing.PairingManager
+import com.phonebrowser.app.services.session.ActiveSessionService
 import com.phonebrowser.app.storage.TrustedDeviceDao
 import com.phonebrowser.app.storage.TrustedDeviceEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PairingViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val activeSessionService: ActiveSessionService,
     private val trustedDeviceDao: TrustedDeviceDao
 ) : ViewModel() {
     var pairingRequest by mutableStateOf<PairingEntry?>(null)
@@ -36,23 +38,29 @@ class PairingViewModel @Inject constructor(
         val entry = pairingRequest ?: return
         val accepted = PairingManager.accept(entry.requestId) ?: return
 
-        saveTrustedDevice(accepted)
-
-        PhoneBrowserForegroundService.stopDiscovery(context)
+        viewModelScope.launch {
+            val trustedDevice = saveTrustedDevice(accepted)
+            activeSessionService.setConnected(trustedDevice)
+            PhoneBrowserForegroundService.stopDiscovery(context)
+        }
     }
 
     fun rejectPairing() = pairingRequest?.let { PairingManager.reject(it.requestId) }
 
-    private fun saveTrustedDevice(accepted: PairingEntry){
-        viewModelScope.launch {
-            trustedDeviceDao.upsert(
-                TrustedDeviceEntity(
-                    deviceId = accepted.requesterDeviceId,
-                    deviceName = accepted.requesterName,
-                    pairingToken = accepted.token.orEmpty(),
-                    lastConnectedAt = System.currentTimeMillis()
-                )
-            )
+    private suspend fun saveTrustedDevice(accepted: PairingEntry): TrustedDeviceEntity{
+
+        var trustedDevice = TrustedDeviceEntity(
+            deviceId = accepted.requesterDeviceId,
+            deviceName = accepted.requesterName,
+            pairingToken = accepted.token.orEmpty(),
+            lastConnectedAt = System.currentTimeMillis()
+        )
+
+        try {
+            trustedDeviceDao.upsert(trustedDevice)
+        } catch (e: Exception) {
+            throw e
         }
+        return trustedDevice
     }
 }
