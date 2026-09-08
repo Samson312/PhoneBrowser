@@ -17,7 +17,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDataase(@ApplicationContext context: Context): PhoneBrowserDatabase =
+    fun provideDatabase(@ApplicationContext context: Context): PhoneBrowserDatabase =
         Room.databaseBuilder(
             context,
             PhoneBrowserDatabase::class.java,
