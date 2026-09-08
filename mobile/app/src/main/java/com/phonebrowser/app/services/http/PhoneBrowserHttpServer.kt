@@ -17,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class PhoneBrowserHttpServer @Inject constructor(
-    @Named("httpPort") private val port: Int
+    @Named("httpPort") private val port: Int,
     private val pairingManager: PairingManager
 ) {
 
