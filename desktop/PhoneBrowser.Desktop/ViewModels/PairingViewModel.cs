@@ -112,6 +112,6 @@ public partial class PairingViewModel : ViewModelBase
     [RelayCommand]
     private void Back() => navigation.GoBack();
 
-    private void Next() {}
     [RelayCommand(CanExecute = nameof(CanGoNext))]
+    private void Next() { }
 }
