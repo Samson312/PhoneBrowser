@@ -22,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PairingViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val pairingManager: PairingManager,
     private val activeSessionService: ActiveSessionService,
     private val trustedDeviceDao: TrustedDeviceDao
 ) : ViewModel() {
@@ -29,14 +30,14 @@ class PairingViewModel @Inject constructor(
         private set
 
     init {
-        PairingManager.incomingRequest
+        pairingManager.incomingRequest
             .onEach { pairingRequest = it }
             .launchIn(viewModelScope)
     }
 
     fun acceptPairing(){
         val entry = pairingRequest ?: return
-        val accepted = PairingManager.accept(entry.requestId) ?: return
+        val accepted = pairingManager.accept(entry.requestId) ?: return
 
         viewModelScope.launch {
             val trustedDevice = saveTrustedDevice(accepted)
@@ -45,7 +46,7 @@ class PairingViewModel @Inject constructor(
         }
     }
 
-    fun rejectPairing() = pairingRequest?.let { PairingManager.reject(it.requestId) }
+    fun rejectPairing() = pairingRequest?.let { pairingManager.reject(it.requestId) }
 
     private suspend fun saveTrustedDevice(accepted: PairingEntry): TrustedDeviceEntity{
 

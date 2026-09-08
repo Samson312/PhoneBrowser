@@ -10,7 +10,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.phonebrowser.app.services.pairing.PairingManager
 import com.phonebrowser.app.ui.home.HomeScreen
 import com.phonebrowser.app.ui.initialConfig.InitialConfigScreen
 import com.phonebrowser.app.ui.pairing.PairingScreen
@@ -23,7 +22,7 @@ fun AppNavigation(
     appViewModel: AppViewModel = hiltViewModel()
 )
 {
-    val incomingRequest by PairingManager.incomingRequest.collectAsStateWithLifecycle()
+    val incomingRequest by appViewModel.incomingRequest.collectAsStateWithLifecycle()
     val hasProfile by appViewModel.hasProfile.collectAsStateWithLifecycle()
 
     LaunchedEffect(incomingRequest) {

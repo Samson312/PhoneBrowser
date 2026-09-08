@@ -1,9 +1,12 @@
 package com.phonebrowser.app.services.pairing
 
+import com.phonebrowser.app.services.session.ActiveSessionService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Singleton
+import javax.inject.Inject
 
 enum class PairingStatus { PENDING, ACCEPTED, REJECTED, EXPIRED }
 
@@ -15,13 +18,20 @@ data class PairingEntry(
     var token: String? = null
 )
 
-object PairingManager {
+@Singleton
+class PairingManager @Inject constructor(
+    private val activeSessionService: ActiveSessionService
+) {
     private val entries = ConcurrentHashMap<String, PairingEntry>()
 
     private val _incomingRequest = MutableStateFlow<PairingEntry?>(null)
     val incomingRequest: StateFlow<PairingEntry?> = _incomingRequest
 
-    fun receiveRequest(requestId: String, requesterDeviceId: String, requesterName: String): PairingEntry {
+    fun receiveRequest(requestId: String, requesterDeviceId: String, requesterName: String): PairingEntry? {
+        if (activeSessionService.isConnected) {
+            return null
+        }
+
         val entry = PairingEntry(requestId, requesterDeviceId, requesterName)
         entries[requestId] = entry
         _incomingRequest.value = entry

@@ -10,14 +10,22 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 
-fun Route.pairingEndpoints() {
+fun Route.pairingEndpoints(pairingManager: PairingManager) {
     post("/pairing/request") {
         val body = call.receive<PairingRequestDto>()
-        PairingManager.receiveRequest(
+        val entry = pairingManager.receiveRequest(
             requestId = body.requestId,
             requesterDeviceId = body.requester.deviceId,
             requesterName = body.requester.deviceName
         )
+
+        if (entry == null) {
+            call.respond(
+                HttpStatusCode.Conflict,
+                PairingStatusResponseDto(requestId = body.requestId, status = "Rejected")
+            )
+            return@post
+        }
 
         call.respond(
             HttpStatusCode.Accepted,
@@ -27,7 +35,7 @@ fun Route.pairingEndpoints() {
 
     get("/pairing/status/{requestId}") {
         val requestId = call.parameters["requestId"]
-        val entry = requestId?.let { PairingManager.getStatus(it) }
+        val entry = requestId?.let { pairingManager.getStatus(it) }
         if (entry == null) {
             call.respond(HttpStatusCode.NotFound)
             return@get

@@ -1,6 +1,7 @@
 package com.phonebrowser.app.services.http
 
 import com.phonebrowser.app.services.http.routes.pairingEndpoints
+import com.phonebrowser.app.services.pairing.PairingManager
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -17,6 +18,7 @@ import javax.inject.Named
 
 class PhoneBrowserHttpServer @Inject constructor(
     @Named("httpPort") private val port: Int
+    private val pairingManager: PairingManager
 ) {
 
     private var server: EmbeddedServer<*, *>? = null
@@ -38,7 +40,7 @@ class PhoneBrowserHttpServer @Inject constructor(
                     call.respondText("OK")
                 }
 
-                pairingEndpoints()
+                pairingEndpoints(pairingManager)
 
             }
         }.start(wait = false)
