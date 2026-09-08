@@ -1,6 +1,5 @@
 ﻿namespace PhoneBrowser.Desktop.ViewModels;
 
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Discovery;
@@ -58,8 +57,11 @@ public partial class PairingViewModel : ViewModelBase
 
 	private void OnDeviceDiscovered(DiscoveredDevice device)
 	{
-        if (!DevicesDiscovered.Any(d => d.DeviceId == device.DeviceId))
-            DevicesDiscovered.Add(device);
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (!DevicesDiscovered.Any(d => d.DeviceId == device.DeviceId))
+                DevicesDiscovered.Add(device);
+        });
     }
 
     [RelayCommand]
@@ -67,8 +69,7 @@ public partial class PairingViewModel : ViewModelBase
     {
         if (pairedDevice.IsPaired) return;
 
-        if (!pairingInFlight.Add(device.DeviceId))
-        return;
+        if (!pairingInFlight.Add(device.DeviceId)) return;
         
 
         var token = await pairingService.PairAsync(device, cts.Token);

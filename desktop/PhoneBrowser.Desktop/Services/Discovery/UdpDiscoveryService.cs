@@ -25,7 +25,10 @@ internal class UdpDiscoveryService : IUdpDiscoveryService
     public UdpDiscoveryService(
         ILocalStore store)
     {
-        udpClient = new UdpClient(PORT);
+        udpClient = new UdpClient(PORT)
+        {
+            EnableBroadcast = true,
+        };
 
         settings = store.GetSettingsProfile();
     }
@@ -65,12 +68,16 @@ internal class UdpDiscoveryService : IUdpDiscoveryService
         using var timer = new PeriodicTimer(
             TimeSpan.FromMilliseconds(BroadcastIntervalMs));
 
-        await SendDiscoveryAsync();
-
-        while (await timer.WaitForNextTickAsync(ct))
+        try
         {
             await SendDiscoveryAsync();
+
+            while (await timer.WaitForNextTickAsync(ct))
+            {
+                await SendDiscoveryAsync();
+            }
         }
+        catch (OperationCanceledException) { }
     }
 
     private void ProcessMessage(UdpReceiveResult result)
