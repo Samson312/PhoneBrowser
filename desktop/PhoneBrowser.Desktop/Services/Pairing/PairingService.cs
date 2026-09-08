@@ -25,7 +25,7 @@ internal class PairingService: IPairingService
 
         var request = new PairingRequestDto(
             requestId,
-            new DeviceInfoDto(settings.Id, settings.DeviceName, "Windows", 1) 
+            new DeviceInfoDto(settings.Id, settings.DeviceName, 1) 
         );
 
         var postResponse = await http.PostAsJsonAsync($"{baseUrl}/pairing/request", request, ct);

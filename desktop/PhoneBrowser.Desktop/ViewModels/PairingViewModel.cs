@@ -91,7 +91,6 @@ public partial class PairingViewModel : ViewModelBase
         {
             Id = device.DeviceId,
             Name = device.DeviceName,
-            Platform = device.Platform,
             PairingToken = token,
             LastKnownIpAddress = device.IpAddress.ToString(),
             LastKnownPort = device.HttpPort,

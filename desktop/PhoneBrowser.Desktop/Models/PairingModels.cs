@@ -1,6 +1,6 @@
 ﻿namespace PhoneBrowser.Desktop.Models;
 
-public record DeviceInfoDto(string deviceId, string deviceName, string platform, int protocolVersion);
+public record DeviceInfoDto(string deviceId, string deviceName, int protocolVersion);
 
 public record PairingRequestDto(string requestId, DeviceInfoDto requester);
 

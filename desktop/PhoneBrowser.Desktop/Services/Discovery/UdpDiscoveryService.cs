@@ -86,7 +86,6 @@ internal class UdpDiscoveryService : IUdpDiscoveryService
             var device = new DiscoveredDevice(
                 msg.deviceId,
                 msg.deviceName ?? "Nieznane urządzenie",
-                msg.platform,
                 result.RemoteEndPoint.Address,
                 msg.httpPort.Value
             );

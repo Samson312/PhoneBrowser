@@ -8,8 +8,6 @@ public record class TrustedDevice
     public string Id { get; init; }
     public string Name { get; set; }
 
-    public string Platform { get; init; }
-
     public string PairingToken { get; init; }
 
     public string LastKnownIpAddress { get; set; }
