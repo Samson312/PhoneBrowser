@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PhoneBrowser.Desktop.Services.Discovery;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Services.Pairing;
+using PhoneBrowser.Desktop.Services.Photo;
 using PhoneBrowser.Desktop.Storage;
 using PhoneBrowser.Desktop.ViewModels;
 using PhoneBrowser.Desktop.Views;
@@ -30,6 +31,7 @@ public partial class App : Application
 
         services.AddTransient<IUdpDiscoveryService, UdpDiscoveryService>();
         services.AddTransient<IPairingService, PairingService>();
+        services.AddTransient<IPhotoSourceService, HttpPhotoSourceService>();
 
         services.AddTransient<InitialConfigurationViewModel>();
         services.AddTransient<HomeViewModel>();
