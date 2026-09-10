@@ -8,7 +8,9 @@ using PhoneBrowser.Desktop.Services.Photo;
 using PhoneBrowser.Desktop.Storage;
 using PhoneBrowser.Desktop.ViewModels;
 using PhoneBrowser.Desktop.Views;
+using System.Globalization;
 using System.Windows;
+using System.Windows.Markup;
 
 /// <summary>
 /// Interaction logic for App.xaml
@@ -20,6 +22,17 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        var culture = new CultureInfo("pl-PL");
+        Thread.CurrentThread.CurrentCulture = culture;
+        Thread.CurrentThread.CurrentUICulture = culture;
+
+
+        FrameworkElement.LanguageProperty.OverrideMetadata(
+            typeof(FrameworkElement),
+            new FrameworkPropertyMetadata(
+                XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
+
 
         var services = new ServiceCollection();
 
