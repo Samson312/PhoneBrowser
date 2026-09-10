@@ -31,8 +31,14 @@ internal class HttpPhotoSourceService : IPhotoSourceService
         if (since.HasValue)
             url += $"?since={since.Value}";
 
-        return await httpClient.GetFromJsonAsync<PhotoItem[]>(url)
-            ?? Array.Empty<PhotoItem>();
+        using var request = AuthorizedRequest(HttpMethod.Get, url);
+
+        var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+
+        return await response.Content.ReadFromJsonAsync<List<PhotoItem>>()
+               ?? new List<PhotoItem>();
     }
 
     public async Task<BitmapImage?> GetThumbnailAsync(string photoId)
@@ -42,8 +48,12 @@ internal class HttpPhotoSourceService : IPhotoSourceService
 
         try 
         {
-            var bytes = await httpClient.GetByteArrayAsync(
-                $"{baseUrl}/photos/{photoId}/thumbnail");
+            using var request = AuthorizedRequest(HttpMethod.Get, $"{baseUrl}/photos/{photoId}/thumbnail");
+
+            using var response = await httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var bytes = await response.Content.ReadAsByteArrayAsync();
 
             using var stream = new MemoryStream(bytes);
 
@@ -66,6 +76,13 @@ internal class HttpPhotoSourceService : IPhotoSourceService
     public async Task<Stream?> GetFullPhotoAsync(string photoId)
     {
         throw new NotImplementedException();
+    }
+
+    private HttpRequestMessage AuthorizedRequest(HttpMethod method, string url)
+    {
+        var request = new HttpRequestMessage(method, url);
+        request.Headers.Authorization = new("Bearer", pairedDevice.AuthToken);
+        return request;
     }
 }
 
