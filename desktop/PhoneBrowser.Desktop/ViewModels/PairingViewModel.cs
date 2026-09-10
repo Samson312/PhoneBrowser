@@ -113,5 +113,5 @@ public partial class PairingViewModel : ViewModelBase
     private void Back() => navigation.GoBack();
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private void Next() { }
+    private void Next() => navigation.NavigateTo<PhotoGalleryViewModel>();
 }

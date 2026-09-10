@@ -1,0 +1,91 @@
+﻿<UserControl x:Class="PhoneBrowser.Desktop.Views.PhotoGalleryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:PhoneBrowser.Desktop.Converters">
+
+    <UserControl.Resources>
+        <converters:SelectedToThicknessConverter x:Key="SelectedToThicknessConverter"/>
+        
+        <CollectionViewSource x:Key="GroupedPhotos" Source="{Binding Photos}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Photo.DateTakenUtc.Date" />
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Wybierz zdjęcia" FontSize="25" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" Margin="0,0,0,16" Grid.Row="0"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Source={StaticResource GroupedPhotos}}" Grid.Row="1">
+                <ItemsControl.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.HeaderTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,12,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name, StringFormat='dd MMMM yyyy'}"
+                                            FontWeight="SemiBold" FontSize="15"/>
+                                        <TextBlock Text="{Binding ItemCount, StringFormat=' — {0} zdjęć'}"
+                                           FontSize="13" Foreground="Gray" Margin="6,0,0,0"
+                                           VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1" Content="Zaznacz dzień"
+                                        Command="{Binding DataContext.ToggleDayCommand,
+                                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding Items}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </GroupStyle.HeaderTemplate>
+                    </GroupStyle>
+                </ItemsControl.GroupStyle>
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="4" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="4" CornerRadius="8"
+                                BorderThickness="{Binding IsSelected, Converter={StaticResource SelectedToThicknessConverter}}"
+                                BorderBrush="#378add"
+                                Height="250" Width="250">
+                            <Button Command="{Binding ToggleCommand}"
+                                    BorderThickness="0" Background="Transparent" Padding="0">
+                                <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+                            </Button>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Grid Margin="0,16,0,0" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand}"/>
+            <Button Grid.Column="2" Command="{Binding NextCommand}">
+                <TextBlock Text="{Binding SelectedCount, StringFormat='Prześlij {0} zdjęć'}"/>
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

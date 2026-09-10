@@ -36,6 +36,7 @@ public partial class App : Application
         services.AddTransient<InitialConfigurationViewModel>();
         services.AddTransient<HomeViewModel>();
         services.AddTransient<PairingViewModel>();
+        services.AddTransient<PhotoGalleryViewModel>();
 
         Services = services.BuildServiceProvider();
 

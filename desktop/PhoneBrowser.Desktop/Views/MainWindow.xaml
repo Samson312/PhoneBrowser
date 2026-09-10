@@ -17,6 +17,10 @@
         <DataTemplate DataType="{x:Type vm:HomeViewModel}">
             <views:HomeView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:PhotoGalleryViewModel}">
+            <views:PhotoGalleryView/>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid Margin="20">
