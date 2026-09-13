@@ -1,10 +1,13 @@
 ﻿namespace PhoneBrowser.Desktop.Services.Photo;
 
+using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Pairing;
+using Serilog;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Windows.Media.Imaging;
 
 internal class HttpPhotoSourceService : IPhotoSourceService
@@ -12,13 +15,16 @@ internal class HttpPhotoSourceService : IPhotoSourceService
     private readonly PairedDeviceService pairedDevice;
 
     private readonly HttpClient httpClient;
+    private readonly ILogger<HttpPhotoSourceService> logger;
 
     public HttpPhotoSourceService(
         PairedDeviceService pairedDevice,
-        IHttpClientFactory httpClientFactory
+        IHttpClientFactory httpClientFactory,
+        ILogger<HttpPhotoSourceService> logger
     ){
         this.pairedDevice = pairedDevice;
         httpClient = httpClientFactory.CreateClient();
+        this.logger = logger;
     }
 
     public async Task<IReadOnlyList<PhotoItem>> GetPhotosAsync(long? since = null)
@@ -31,14 +37,32 @@ internal class HttpPhotoSourceService : IPhotoSourceService
         if (since.HasValue)
             url += $"?since={since.Value}";
 
-        using var request = AuthorizedRequest(HttpMethod.Get, url);
+        try
+        {
+            using var request = AuthorizedRequest(HttpMethod.Get, url);
 
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+            var response = await httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
 
 
-        return await response.Content.ReadFromJsonAsync<List<PhotoItem>>()
-               ?? new List<PhotoItem>();
+            return await response.Content.ReadFromJsonAsync<List<PhotoItem>>()
+                   ?? new List<PhotoItem>();
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Failed to fetch photo list from {Url}", url);
+            return new List<PhotoItem>();
+        }
+        catch (JsonException ex)
+        {
+            logger.LogError(ex, "Failed to parse photo list response from {Url}", url);
+            return new List<PhotoItem>();
+        }
+        catch (TaskCanceledException ex)
+        {
+            logger.LogWarning(ex, "Photo list request to {Url} timed out", url);
+            return new List<PhotoItem>();
+        }
     }
 
     public async Task<BitmapImage?> GetThumbnailAsync(string photoId)
@@ -67,8 +91,9 @@ internal class HttpPhotoSourceService : IPhotoSourceService
 
             return bitmap;
         }
-        catch(Exception) 
+        catch(Exception ex) 
         {
+            logger.LogDebug(ex, "Thumbnail fetch failed for photo {PhotoId}", photoId);
             return null;
         }
     }
