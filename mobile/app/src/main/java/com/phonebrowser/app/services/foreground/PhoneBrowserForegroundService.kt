@@ -13,6 +13,7 @@ import com.phonebrowser.app.services.http.PhoneBrowserHttpServer
 import com.phonebrowser.app.services.discovery.UdpDiscoveryService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -26,31 +27,34 @@ class PhoneBrowserForegroundService: Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP_DISCOVERY) {
+            Timber.i("Stopping discovery by request")
             udpDiscovery.stop()
             return START_NOT_STICKY
         }
 
-        ServiceCompat.startForeground(
-            this,
-            NOTIFICATION_ID,
-            buildNotification(),
-            serviceType()
-        )
+        try {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, buildNotification(), serviceType())
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to start foreground service")
+            stopSelf()
+            return START_NOT_STICKY
+        }
 
         httpServer.start()
-        udpDiscovery.startBroadcasting(serviceScope) { entry ->
-            android.util.Log.d("DiscoveryService", entry)
-        }
+        udpDiscovery.startBroadcasting(serviceScope)
+        Timber.i("PhoneBrowser foreground service started")
 
         return START_NOT_STICKY
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+        Timber.d("Task removed, stopping service")
         stopSelf()
     }
 
     override fun onDestroy() {
+        Timber.i("PhoneBrowser foreground service stopping")
         udpDiscovery.stop()
         httpServer.stop()
         serviceScope.cancel()
