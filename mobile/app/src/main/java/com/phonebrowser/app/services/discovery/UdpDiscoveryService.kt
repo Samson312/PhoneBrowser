@@ -4,8 +4,11 @@ import com.phonebrowser.app.models.DiscoveryMessage
 import com.phonebrowser.app.storage.SettingsRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
+import org.json.JSONException
+import timber.log.Timber
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.net.SocketException
 import java.net.SocketTimeoutException
 import javax.inject.Inject
 import javax.inject.Named
@@ -18,12 +21,15 @@ class UdpDiscoveryService @Inject constructor(
 
     private val port:Int = 47821
 
-    fun startBroadcasting(scope: CoroutineScope, onLog: (String) -> Unit){
+    fun startBroadcasting(scope: CoroutineScope){
         if(job?.isActive == true) return
 
         job = scope.launch(Dispatchers.IO) {
-            val socket = DatagramSocket(port).apply{
-                soTimeout = 1000
+            val socket = try {
+                DatagramSocket(port).apply { soTimeout = 1000 }
+            } catch (e: SocketException) {
+                Timber.e(e, "Failed to bind UDP socket on port %d", port)
+                return@launch
             }
 
             try {
@@ -35,6 +41,9 @@ class UdpDiscoveryService @Inject constructor(
                         socket.receive(packet)
                     } catch (e: SocketTimeoutException) {
                         continue
+                    } catch (e: SocketException) {
+                        Timber.w(e, "UDP receive failed, continuing listen loop")
+                        continue
                     }
 
                     val raw = String(packet.data, 0, packet.length)
@@ -42,21 +51,17 @@ class UdpDiscoveryService @Inject constructor(
 
                     val message = try {
                         DiscoveryMessage.fromJson(raw)
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) { onLog("Nieprawidłowa wiadomość: $raw") }
+                    } catch (e: JSONException) {
+                        Timber.w(e, "Received malformed discovery message: %s", raw)
                         null
                     }
 
                     if (message?.type != "DISCOVER") {
-                        if (message != null) {
-                            withContext(Dispatchers.Main) { onLog("Zignorowano: ${message.type}") }
-                        }
+                        message?.let { Timber.d("Ignored message of type %s", it.type) }
                         continue
                     }
 
-                    withContext(Dispatchers.Main) {
-                        onLog("Znaleziono ${message.deviceName}: ${packet.address}")
-                    }
+                    Timber.d("Discovery request from %s: %s", packet.address, message.deviceName)
 
                     val settings = settingsRepository.settingsFlow.first()
 
@@ -66,20 +71,27 @@ class UdpDiscoveryService @Inject constructor(
                         httpPort = httpPort
                     )
 
-                    var data = reply.toJson().toByteArray()
-
-                    socket.send(DatagramPacket(data, data.size, packet.address, packet.port))
-                    withContext(Dispatchers.Main) { onLog("Wysłano: ${reply.type}|${message.httpPort}") }
+                    try {
+                        val data = reply.toJson().toByteArray()
+                        socket.send(DatagramPacket(data, data.size, packet.address, packet.port))
+                        Timber.d("Sent ANNOUNCE to %s", packet.address)
+                    } catch (e: SocketException) {
+                        Timber.w(e, "Failed to send ANNOUNCE reply to %s", packet.address)
+                    }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { onLog("Błąd: ${e.message}") }
+                Timber.e(e, "Unexpected error in discovery listen loop")
             } finally {
                 socket.close()
+                Timber.d("Discovery socket closed")
             }
         }
     }
 
     fun stop() {
         job?.cancel()
+        Timber.d("Discovery stopped")
     }
 }
