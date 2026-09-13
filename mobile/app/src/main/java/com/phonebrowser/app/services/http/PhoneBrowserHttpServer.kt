@@ -21,6 +21,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.plugins.statuspages.*
 
 import kotlinx.serialization.json.Json
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -36,47 +37,63 @@ class PhoneBrowserHttpServer @Inject constructor(
 
     fun start() {
         if (server != null) return
-        server = embeddedServer(CIO, port = port) {
-            install(StatusPages) {
-                exception<Throwable> { call, cause ->
-                    cause.printStackTrace()
-                    call.respondText("Error: ${cause.message}", status = HttpStatusCode.InternalServerError)
-                }
-            }
-            install(ContentNegotiation) {
-                json(Json { ignoreUnknownKeys = true })
-            }
-            install(Authentication) {
-                bearer("auth-bearer") {
-                    realm = "PhoneBrowser"
-                    authenticate { tokenCredential ->
-                        val peer = activeSession.connectedPeer.value
 
-                        if (peer?.pairingToken == tokenCredential.token) {
-                            UserIdPrincipal(peer.deviceId)
-                        } else {
-                            null
+        try{
+            server = embeddedServer(CIO, port = port) {
+                install(StatusPages) {
+                    exception<Throwable> { call, cause ->
+                        Timber.e(cause, "Unhandled exception while processing %s", call.request.local.uri)
+                        call.respondText("Error: ${cause.message}", status = HttpStatusCode.InternalServerError)
+                    }
+                }
+                install(ContentNegotiation) {
+                    json(Json { ignoreUnknownKeys = true })
+                }
+                install(Authentication) {
+                    bearer("auth-bearer") {
+                        realm = "PhoneBrowser"
+                        authenticate { tokenCredential ->
+                            val peer = activeSession.connectedPeer.value
+
+                            if (peer?.pairingToken == tokenCredential.token) {
+                                UserIdPrincipal(peer.deviceId)
+                            } else {
+                                Timber.w("Rejected request with invalid or missing bearer token")
+                                null
+                            }
                         }
                     }
                 }
-            }
 
-            routing {
-                get("/health") {
-                    call.respondText("OK")
+                routing {
+                    get("/health") {
+                        call.respondText("OK")
+                    }
+
+                    pairingEndpoints(pairingManager)
+
+                    authenticate("auth-bearer"){
+                        photoEndpoints(photoRepository)
+                    }
                 }
+            }.start(wait = false)
 
-                pairingEndpoints(pairingManager)
-
-                authenticate("auth-bearer"){
-                    photoEndpoints(photoRepository)
-                }
-            }
-        }.start(wait = false)
+            Timber.i("HTTP server started on port %d", port)
+        }
+        catch (e: Exception) {
+            Timber.e(e, "Failed to start HTTP server on port %d", port)
+            server = null
+        }
     }
 
     fun stop() {
-        server?.stop(gracePeriodMillis = 500, timeoutMillis = 1000)
-        server = null
+        try {
+            server?.stop(gracePeriodMillis = 500, timeoutMillis = 1000)
+            Timber.i("HTTP server stopped")
+        } catch (e: Exception) {
+            Timber.w(e, "Error while stopping HTTP server")
+        } finally {
+            server = null
+        }
     }
 }

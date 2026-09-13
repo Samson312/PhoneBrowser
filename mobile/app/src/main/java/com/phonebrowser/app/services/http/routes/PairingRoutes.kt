@@ -9,10 +9,12 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import timber.log.Timber
 
 fun Route.pairingEndpoints(pairingManager: PairingManager) {
     post("/pairing/request") {
         val body = call.receive<PairingRequestDto>()
+        Timber.i("Pairing request received from %s (%s)", body.requester.deviceName, body.requester.deviceId)
         val entry = pairingManager.receiveRequest(
             requestId = body.requestId,
             requesterDeviceId = body.requester.deviceId,
@@ -20,6 +22,7 @@ fun Route.pairingEndpoints(pairingManager: PairingManager) {
         )
 
         if (entry == null) {
+            Timber.w("Pairing request from %s rejected — already connected to a peer", body.requester.deviceName)
             call.respond(
                 HttpStatusCode.Conflict,
                 PairingStatusResponseDto(requestId = body.requestId, status = "Rejected")
