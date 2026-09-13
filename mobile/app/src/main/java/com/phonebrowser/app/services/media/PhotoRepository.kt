@@ -2,12 +2,16 @@ package com.phonebrowser.app.services.media
 
 import android.content.ContentUris
 import android.content.Context
+import android.database.sqlite.SQLiteException
 import android.graphics.Bitmap
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
 import com.phonebrowser.app.models.PhotoItemDto
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.IOException
+import java.io.FileNotFoundException
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -34,48 +38,73 @@ class PhotoRepository @Inject constructor(
 
         val result = mutableListOf<PhotoItemDto>()
 
-        context.contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection, selection, selectionArgs, sortOrder
-        )?.use { cursor ->
-            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
-            val dateTakenCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
-            val dateAddedCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
-            val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
+        try{
+            context.contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection, selection, selectionArgs, sortOrder
+            )?.use { cursor ->
+                val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
+                val dateTakenCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
+                val dateAddedCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
+                val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
 
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idCol)
-                val dateTaken = cursor.getLong(dateTakenCol)
-                val dateAddedSeconds = cursor.getLong(dateAddedCol)
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idCol)
+                    val dateTaken = cursor.getLong(dateTakenCol)
+                    val dateAddedSeconds = cursor.getLong(dateAddedCol)
 
-                val effectiveDate = if (dateTaken > 0) dateTaken else dateAddedSeconds * 1000
+                    val effectiveDate = if (dateTaken > 0) dateTaken else dateAddedSeconds * 1000
 
-                result += PhotoItemDto(
-                    photoId = id.toString(),
-                    fileName = cursor.getString(nameCol) ?: "zdjecie_$id.jpg",
-                    dateTakenUtc = effectiveDate,
-                    sizeBytes = cursor.getLong(sizeCol),
-                )
+                    result += PhotoItemDto(
+                        photoId = id.toString(),
+                        fileName = cursor.getString(nameCol) ?: "zdjecie_$id.jpg",
+                        dateTakenUtc = effectiveDate,
+                        sizeBytes = cursor.getLong(sizeCol),
+                    )
+                }
             }
+
+            Timber.d("Listed %d photos (since=%s)", result.size, sinceEpochMillis)
+        } catch (e: SecurityException) {
+            Timber.w(e, "Missing permission to query MediaStore")
+        } catch (e: SQLiteException) {
+            Timber.e(e, "MediaStore query failed")
         }
+
         return result
     }
 
     fun openFullPhotoStream(photoId: Long) =
-        context.contentResolver.openInputStream(
-            ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, photoId)
-        )
+        try {
+            context.contentResolver.openInputStream(
+                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, photoId)
+            )
+        } catch (e: FileNotFoundException) {
+            Timber.w(e, "Photo %d not found when opening full stream", photoId)
+            null
+        } catch (e: SecurityException) {
+            Timber.w(e, "Missing permission to open photo %d", photoId)
+            null
+        }
 
     fun loadThumbnail(photoId: Long): Bitmap? {
         val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, photoId)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            context.contentResolver.loadThumbnail(uri, Size(256, 256), null)
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Images.Thumbnails.getThumbnail(
-                context.contentResolver, photoId, MediaStore.Images.Thumbnails.MINI_KIND, null
-            )
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                context.contentResolver.loadThumbnail(uri, Size(256, 256), null)
+            } else {
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Thumbnails.getThumbnail(
+                    context.contentResolver, photoId, MediaStore.Images.Thumbnails.MINI_KIND, null
+                )
+            }
+        } catch (e: IOException) {
+            Timber.w(e, "Failed to load thumbnail for photo %d", photoId)
+            null
+        } catch (e: SecurityException) {
+            Timber.w(e, "Missing permission to load thumbnail for photo %d", photoId)
+            null
         }
     }
 }
