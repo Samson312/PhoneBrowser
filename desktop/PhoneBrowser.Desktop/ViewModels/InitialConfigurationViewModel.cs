@@ -2,14 +2,18 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Storage;
+using System.IO;
+using LiteDB;
 
 public partial class InitialConfigurationViewModel: ViewModelBase
 {
     private readonly INavigationService navigation;
     private readonly ILocalStore store;
+    private readonly ILogger<InitialConfigurationViewModel> logger;
 
     private SettingsProfile settings;
 
@@ -18,10 +22,12 @@ public partial class InitialConfigurationViewModel: ViewModelBase
 
     public InitialConfigurationViewModel(
         INavigationService navigation,
-        ILocalStore store)
+        ILocalStore store,
+        ILogger<InitialConfigurationViewModel> logger)
     {
         this.navigation = navigation;
         this.store = store;
+        this.logger = logger;
 
         settings = store.GetSettingsProfile();
         DeviceName = settings.DeviceName;
@@ -37,8 +43,9 @@ public partial class InitialConfigurationViewModel: ViewModelBase
 
             return true;
         }
-        catch(InvalidOperationException ex)
+        catch(Exception ex) when (ex is InvalidOperationException or LiteException or IOException)
         {
+            logger.LogError(ex, "Failed to save initial settings profile for device name {DeviceName}", DeviceName);
             return false;
         }
     }
