@@ -12,6 +12,7 @@ import com.phonebrowser.app.ui.theme.PhoneBrowserMobileTheme
 import com.phonebrowser.app.ui.nav.AppNavigation
 import com.phonebrowser.app.services.foreground.PhoneBrowserForegroundService
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -19,7 +20,12 @@ class MainActivity : ComponentActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ){ granted ->
-        if(granted) PhoneBrowserForegroundService.start(this)
+        if (granted) {
+            Timber.i("Media permission granted, starting foreground service")
+            PhoneBrowserForegroundService.start(this)
+        } else {
+            Timber.w("Media permission denied — app cannot list or serve photos")
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

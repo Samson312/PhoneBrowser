@@ -1,6 +1,7 @@
 package com.phonebrowser.app.viewmodels
 
 import android.content.Context
+import android.database.sqlite.SQLiteException
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,6 +18,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -59,8 +61,9 @@ class PairingViewModel @Inject constructor(
 
         try {
             trustedDeviceDao.upsert(trustedDevice)
-        } catch (e: Exception) {
-            throw e
+            Timber.d("Persisted trusted device %s (%s)", trustedDevice.deviceName, trustedDevice.deviceId)
+        } catch (e: SQLiteException) {
+            Timber.e(e, "Failed to persist trusted device %s — session works but won't survive restart", trustedDevice.deviceId)
         }
         return trustedDevice
     }
