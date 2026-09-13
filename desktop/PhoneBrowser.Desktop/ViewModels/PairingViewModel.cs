@@ -1,6 +1,7 @@
 ﻿namespace PhoneBrowser.Desktop.ViewModels;
 
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Discovery;
 using PhoneBrowser.Desktop.Services.Navigation;
@@ -20,6 +21,8 @@ public partial class PairingViewModel : ViewModelBase
 
     private readonly ILocalStore store;
 
+    private readonly ILogger<PairingViewModel> logger;
+
     private readonly PairedDeviceService pairedDevice;
 
     private readonly HashSet<string> pairingInFlight = new();
@@ -33,18 +36,20 @@ public partial class PairingViewModel : ViewModelBase
         IPairingService pairingService,
         INavigationService navigation,
         ILocalStore store,
+        ILogger<PairingViewModel> logger,
         PairedDeviceService pairedDevice)
 	{
         this.discoveryService = discoveryService;
         this.pairingService = pairingService;
         this.navigation = navigation;
         this.store = store;
+        this.logger = logger;
         this.pairedDevice = pairedDevice;
 
 		discoveryService.DeviceDiscovered += OnDeviceDiscovered;
 
 
-        discoveryService.StartAsync(cts.Token);
+        _ = StartDiscoveryAsync();
     }
 
     public override void Dispose()
@@ -55,7 +60,20 @@ public partial class PairingViewModel : ViewModelBase
         cts.Dispose();
     }
 
-	private void OnDeviceDiscovered(DiscoveredDevice device)
+    private async Task StartDiscoveryAsync()
+    {
+        try
+        {
+            await discoveryService.StartAsync(cts.Token);
+        }
+        catch (OperationCanceledException){ }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Discovery service failed to start on pairing screen");
+        }
+    }
+
+    private void OnDeviceDiscovered(DiscoveredDevice device)
 	{
         Application.Current.Dispatcher.Invoke(() =>
         {
@@ -100,10 +118,11 @@ public partial class PairingViewModel : ViewModelBase
         try
         {
             store.SaveTrustedDevice(trustedDevice);
+            logger.LogInformation("Paired with device {DeviceName} ({DeviceId})", device.DeviceName, device.DeviceId);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(ex);
+            logger.LogError(ex, "Failed to persist trusted device {DeviceId} after successful pairing", device.DeviceId);
         }
     }
 

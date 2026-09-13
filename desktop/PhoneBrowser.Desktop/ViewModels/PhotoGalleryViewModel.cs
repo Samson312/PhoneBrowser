@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Services.Photo;
@@ -14,6 +15,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 {
     private readonly IPhotoSourceService photoSource;
     private readonly INavigationService navigation;
+    private readonly ILogger<PhotoGalleryViewModel> logger;
 
     public ObservableCollection<PhotoTileViewModel> Photos { get; } = new();
 
@@ -26,11 +28,13 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     public PhotoGalleryViewModel(
         IPhotoSourceService photoSource,
-        INavigationService navigation
+        INavigationService navigation,
+        ILogger<PhotoGalleryViewModel> logger
         )
     {
         this.photoSource = photoSource;
         this.navigation = navigation;
+        this.logger = logger;
 
         _ = LoadPhotosAsync();
     }
@@ -39,25 +43,39 @@ public partial class PhotoGalleryViewModel : ViewModelBase
     {
         IsLoading = true;
 
-        var items = await photoSource.GetPhotosAsync(null);
-
-        if (items.Count == 0)
+        try
         {
-            return;
-        }
+            var items = await photoSource.GetPhotosAsync(null);
 
-        foreach (var item in items.OrderByDescending(p => p.DateTakenUtc))
-        {
-            var tile = new PhotoTileViewModel(item, photoSource);
-            tile.PropertyChanged += (_, e) =>
+            if (items.Count == 0)
             {
-                if (e.PropertyName == nameof(PhotoTileViewModel.IsSelected))
+                logger.LogInformation("No photos found on source device");
+                return;
+            }
+
+            foreach (var item in items.OrderByDescending(p => p.DateTakenUtc))
+            {
+                var tile = new PhotoTileViewModel(item, photoSource);
+                tile.PropertyChanged += (_, e) =>
                 {
-                    OnPropertyChanged(nameof(SelectedCount));
-                    NextCommand.NotifyCanExecuteChanged();
-                }
-            };
-            Photos.Add(tile);
+                    if (e.PropertyName == nameof(PhotoTileViewModel.IsSelected))
+                    {
+                        OnPropertyChanged(nameof(SelectedCount));
+                        NextCommand.NotifyCanExecuteChanged();
+                    }
+                };
+                Photos.Add(tile);
+            }
+
+            logger.LogInformation("Loaded {Count} photos", items.Count);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to load photo gallery");
+        }
+        finally
+        {
+            IsLoading = false; 
         }
     }
 
