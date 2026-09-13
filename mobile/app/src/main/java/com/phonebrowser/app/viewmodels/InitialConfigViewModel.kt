@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.io.IOException
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,8 +42,13 @@ class InitialConfigViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            settingsRepository.saveDeviceName(deviceName.trim())
-            onSaved()
+            try {
+                settingsRepository.saveDeviceName(deviceName.trim())
+                onSaved()
+            } catch (e: IOException) {
+                Timber.e(e, "Failed to save device name")
+                errorMessage = "Nie udało się zapisać ustawień. Spróbuj ponownie."
+            }
         }
     }
 }
