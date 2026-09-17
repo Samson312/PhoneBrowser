@@ -6,6 +6,7 @@ using PhoneBrowser.Desktop.Services.Discovery;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Services.Pairing;
 using PhoneBrowser.Desktop.Services.Photo;
+using PhoneBrowser.Desktop.Services.Network;
 using PhoneBrowser.Desktop.Storage;
 using PhoneBrowser.Desktop.ViewModels;
 using PhoneBrowser.Desktop.Views;
@@ -65,6 +66,7 @@ public partial class App : Application
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<PairedDeviceService>();
+        services.AddSingleton<INetworkService, NetworkService>();
         services.AddHttpClient();
 
         services.AddTransient<IUdpDiscoveryService, UdpDiscoveryService>();

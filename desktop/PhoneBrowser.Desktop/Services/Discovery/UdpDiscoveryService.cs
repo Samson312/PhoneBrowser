@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Models;
+using PhoneBrowser.Desktop.Services.Network;
 using PhoneBrowser.Desktop.Storage;
 using System;
 using System.Net;
@@ -12,6 +13,8 @@ using System.Text.Json;
 internal class UdpDiscoveryService : IUdpDiscoveryService
 {
     private readonly ILogger<UdpDiscoveryService> logger;
+
+    private readonly INetworkService networkService;
 
     private const int PORT = 47821;
 
@@ -27,9 +30,11 @@ internal class UdpDiscoveryService : IUdpDiscoveryService
 
     public UdpDiscoveryService(
         ILocalStore store,
-        ILogger<UdpDiscoveryService> logger)
+        ILogger<UdpDiscoveryService> logger,
+        INetworkService networkService)
     {
         this.logger = logger;
+        this.networkService = networkService;
         settings = store.GetSettingsProfile();
 
         try
@@ -141,7 +146,12 @@ internal class UdpDiscoveryService : IUdpDiscoveryService
         {
             var message = new DiscoveryMessage(settings.Id, settings.DeviceName);
             var data = Encoding.UTF8.GetBytes(message.ToJson());
-            await udpClient.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Broadcast, PORT));
+
+            foreach (var broadcastAddress in networkService.GetBroadcastAddresses())
+            {
+                await udpClient.SendAsync(data, data.Length, new IPEndPoint(broadcastAddress, PORT));
+                logger.LogDebug("Sent discovery broadcast to {BroadcastAddress}:{Port}", broadcastAddress, PORT);
+            }   
         }
         catch(SocketException ex)
         {
