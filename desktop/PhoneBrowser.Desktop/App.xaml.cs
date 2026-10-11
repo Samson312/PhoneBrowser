@@ -15,6 +15,7 @@ using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Markup;
+using PhoneBrowser.Desktop.Models;
 
 /// <summary>
 /// Interaction logic for App.xaml
@@ -66,6 +67,7 @@ public partial class App : Application
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<PairedDeviceService>();
+        services.AddSingleton<TransferDraft>();
         services.AddSingleton<INetworkService, NetworkService>();
         services.AddHttpClient();
 

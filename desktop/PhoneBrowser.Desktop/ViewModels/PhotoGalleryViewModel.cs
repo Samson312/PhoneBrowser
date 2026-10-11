@@ -16,6 +16,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
     private readonly IPhotoSourceService photoSource;
     private readonly INavigationService navigation;
     private readonly ILogger<PhotoGalleryViewModel> logger;
+    private readonly TransferDraft transferDraft;
 
     public ObservableCollection<PhotoTileViewModel> Photos { get; } = new();
 
@@ -28,6 +29,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     public PhotoGalleryViewModel(
         IPhotoSourceService photoSource,
+        TransferDraft transferDraft,
         INavigationService navigation,
         ILogger<PhotoGalleryViewModel> logger
         )
@@ -35,6 +37,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
         this.photoSource = photoSource;
         this.navigation = navigation;
         this.logger = logger;
+        this.transferDraft = transferDraft;
 
         _ = LoadPhotosAsync();
     }
@@ -75,7 +78,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
         }
         finally
         {
-            IsLoading = false; 
+            IsLoading = false;
         }
     }
 
@@ -93,6 +96,11 @@ public partial class PhotoGalleryViewModel : ViewModelBase
     private void Back() => navigation.GoBack();
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private void Next() {}
+    private void Next() 
+    {
+        var selectedPhotos = Photos.Where(p => p.IsSelected).Select(p => p.Photo).ToList();
+
+        transferDraft.SetPhotos(selectedPhotos);
+    }
 }
 
