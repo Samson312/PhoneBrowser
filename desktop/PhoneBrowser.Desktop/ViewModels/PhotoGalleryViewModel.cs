@@ -101,6 +101,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
         var selectedPhotos = Photos.Where(p => p.IsSelected).Select(p => p.Photo).ToList();
 
         transferDraft.SetPhotos(selectedPhotos);
+        navigation.NavigateTo<SaveLocationViewModel>();
     }
 }
 

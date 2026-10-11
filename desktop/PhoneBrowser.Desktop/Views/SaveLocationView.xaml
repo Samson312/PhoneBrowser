@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="PhoneBrowser.Desktop.Views.SaveLocationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:PhoneBrowser.Desktop.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="{Binding Title}"
+            FontSize="25" FontWeight="SemiBold"
+            HorizontalAlignment="Center"
+            Margin="0,0,0,16"
+            Grid.Row="0"/>
+
+        <TextBlock Text="Domyślnie zapiszemy je w folderze poniżej. Możesz to zmienić."
+            FontSize="17" FontWeight="SemiBold"
+            HorizontalAlignment="Center"
+            Margin="0,0,0,16"
+            Grid.Row="1"/>
+
+
+        <StackPanel Grid.Row="2">
+            <TextBlock Text="{Binding DirectoryName}"
+                FontSize="25" FontWeight="SemiBold"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,16"/>
+            
+            <TextBlock Text="{Binding DirectoryPath}"
+                FontSize="16"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,16"/>
+        </StackPanel>
+
+
+        <Button Grid.Row="3" Content="Wybierz inny folder" Width="300" Command="{Binding ChangeDirectoryCommand}" />
+
+        <Grid Margin="0,16,0,0" Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand}"/>
+            <Button Grid.Column="2" Content="Zapisz tutaj" Command="{Binding NextCommand}" />
+        </Grid>
+
+    </Grid>
+</UserControl>

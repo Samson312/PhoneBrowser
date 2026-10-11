@@ -79,6 +79,7 @@ public partial class App : Application
         services.AddTransient<HomeViewModel>();
         services.AddTransient<PairingViewModel>();
         services.AddTransient<PhotoGalleryViewModel>();
+        services.AddTransient<SaveLocationViewModel>();
 
         Services = services.BuildServiceProvider();
 
