@@ -7,10 +7,9 @@ using Microsoft.Win32;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Helpers;
 using PhoneBrowser.Desktop.Models;
+using PhoneBrowser.Desktop.Errors;
 using System;
 using System.IO;
-
-public enum SaveLocationError { None, NoPermission, Unavailable, NotEnoughSpace, Unknown }
 
 public partial class SaveLocationViewModel : ViewModelBase
 {
@@ -22,14 +21,22 @@ public partial class SaveLocationViewModel : ViewModelBase
 
     public string Title => $"Gdzie zapisać wybrane {PolishPlural.Photos(transferDraft.Photos.Count)}?";
 
-    public string DirectoryName => Path.GetFileName(DirectoryPath.TrimEnd('\\'));
+    public string DirectoryName
+    {
+        get
+        {
+            var trimmed = Path.TrimEndingDirectorySeparator(DirectoryPath);
+            var name = Path.GetFileName(trimmed);
+            return string.IsNullOrEmpty(name) ? DirectoryPath : name;
+        }
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DirectoryName))]
     private string directoryPath = "";
 
     [ObservableProperty] 
-    private SaveLocationError error;
+    private UserMessage? errorMessage = null;
 
     public SaveLocationViewModel(
         TransferDraft transferDraft,
@@ -72,9 +79,7 @@ public partial class SaveLocationViewModel : ViewModelBase
             logger.LogWarning(ex, "No write permission for {Path}", path);
             return SaveLocationError.NoPermission;
         }
-        catch (Exception ex) when (ex is DirectoryNotFoundException or DriveNotFoundException
-                                    or PathTooLongException or IOException
-                                    or ArgumentException or NotSupportedException)
+        catch (Exception ex) when (ex is IOException or ArgumentException or NotSupportedException)
         {
             logger.LogWarning(ex, "Target directory unavailable: {Path}", path);
             return SaveLocationError.Unavailable;
@@ -90,7 +95,11 @@ public partial class SaveLocationViewModel : ViewModelBase
     private void ChangeDirectory()
     {
         var dlg = new OpenFolderDialog { InitialDirectory = DirectoryPath };
-        if (dlg.ShowDialog() == true) DirectoryPath = dlg.FolderName;
+        if (dlg.ShowDialog() == true)
+        {
+            DirectoryPath = dlg.FolderName;
+            ErrorMessage = null;  
+        }
     }
 
     [RelayCommand]
@@ -99,11 +108,18 @@ public partial class SaveLocationViewModel : ViewModelBase
     [RelayCommand]
     private void Next()
     {
+        ErrorMessage = null;
+
         var transferDataSize = transferDraft.TotalBytes;
 
-        Error = Validate(DirectoryPath, transferDataSize);
+        var error = Validate(DirectoryPath, transferDataSize);
 
-        if (Error != SaveLocationError.None) return;
+        if(error != SaveLocationError.None)
+        {
+            ErrorMessage = ErrorMessages.SaveLocation(error, transferDataSize);
+            logger.LogDebug("Validation failed: {Error}", error);
+            return;
+        }
 
         transferDraft.SetTargetDirectory(DirectoryPath);
         logger.LogInformation("Save location confirmed: {Path}, {Count} photos, {Bytes} B",
