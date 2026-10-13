@@ -11,6 +11,7 @@ import androidx.core.app.ServiceCompat
 import com.phonebrowser.app.MainActivity
 import com.phonebrowser.app.services.http.PhoneBrowserHttpServer
 import com.phonebrowser.app.services.discovery.UdpDiscoveryService
+import com.phonebrowser.app.services.session.ActiveSessionService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import timber.log.Timber
@@ -22,6 +23,8 @@ class PhoneBrowserForegroundService: Service() {
 
     @Inject lateinit var httpServer: PhoneBrowserHttpServer
     @Inject lateinit var udpDiscovery: UdpDiscoveryService
+
+    @Inject lateinit var activeSession: ActiveSessionService
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -55,6 +58,7 @@ class PhoneBrowserForegroundService: Service() {
 
     override fun onDestroy() {
         Timber.i("PhoneBrowser foreground service stopping")
+        activeSession.clear()
         udpDiscovery.stop()
         httpServer.stop()
         serviceScope.cancel()
