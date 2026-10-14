@@ -124,8 +124,6 @@ public partial class SaveLocationViewModel : ViewModelBase
         transferDraft.SetTargetDirectory(DirectoryPath);
         logger.LogInformation("Save location confirmed: {Path}, {Count} photos, {Bytes} B",
             DirectoryPath, transferDraft.Photos.Count, transferDataSize);
-
-        navigation.NavigateTo<TransferViewModel>();
     }
 }
 
