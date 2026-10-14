@@ -25,6 +25,10 @@
         <DataTemplate DataType="{x:Type vm:SaveLocationViewModel}">
             <views:SaveLocationView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:TransferViewModel}">
+            <views:TransferView/>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid Margin="20">

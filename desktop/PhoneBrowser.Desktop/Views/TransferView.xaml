@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="PhoneBrowser.Desktop.Views.TransferView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:PhoneBrowser.Desktop.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /> <!-- Title -->
+            <RowDefinition Height="Auto" /> <!-- Description -->
+            <RowDefinition Height="*" /> <!-- Progress bar -->
+            <RowDefinition Height="Auto" /> <!-- Buttons -->
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="{Binding Title}"
+            FontSize="25" FontWeight="SemiBold"
+            TextWrapping="Wrap"
+            HorizontalAlignment="Center"
+            Margin="0,0,0,16"
+            Grid.Row="0"/>
+
+        <TextBlock Text="{Binding Description}"
+            FontSize="17" FontWeight="SemiBold"
+            TextWrapping="Wrap"
+            HorizontalAlignment="Center"
+            Margin="0,0,0,16"
+            Grid.Row="1"/>
+
+        <ProgressBar Grid.Row="2" Height="16" Margin="40,0" VerticalAlignment="Center"
+                     Maximum="{Binding TotalCount}"
+                     Value="{Binding TransferredCount, Mode=OneWay}"
+                     Visibility="{Binding IsInProgress, Converter={StaticResource BoolToVis}}"/>
+
+        <StackPanel Grid.Row="3">
+            <Button Content="Anuluj" Command="{Binding BackCommand}" 
+                    Visibility="{Binding IsInProgress, Converter={StaticResource BoolToVis}}"/> <!-- TODO: Cancel should stay at the same page -->
+
+            <StackPanel Visibility="{Binding IsDone, Converter={StaticResource BoolToVis}}">
+                <Button Content="Otwórz folder z zdjęciami" Command="{Binding OpenDirectoryCommand}" Margin="0,0,0,12"/>
+                <Button Content="Zakończ" Command="{Binding NextCommand}" />
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding IsError, Converter={StaticResource BoolToVis}}">
+                <Button Content="Spróbuj ponownie" Command="{Binding RetryCommand}"
+                        Visibility="{Binding CanRetry, Converter={StaticResource BoolToVis}}" Margin="0,0,0,12" />
+                <Button Content="Wróć i zmień folder" Command="{Binding BackCommand}" Margin="0,0,0,12" /> <!-- TODO: Diffrent Label and Action depending on error type-->
+                <Button Content="Zakończ" Command="{Binding NextCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>
