@@ -1,10 +1,12 @@
 ﻿namespace PhoneBrowser.Desktop.Services.Photo;
 
 using Microsoft.Extensions.Logging;
+using PhoneBrowser.Desktop.Errors;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Pairing;
 using Serilog;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -98,9 +100,52 @@ internal class HttpPhotoSourceService : IPhotoSourceService
         }
     }
 
-    public async Task<Stream?> GetFullPhotoAsync(string photoId)
+    public async Task<Result<Stream, PhotoSourceError>> GetFullPhotoAsync(string photoId, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        var baseUrl = pairedDevice.BaseUrl;
+
+        if (baseUrl == null) return Result<Stream, PhotoSourceError>.Fail(PhotoSourceError.Unreachable);
+
+        HttpResponseMessage? response = null;
+        try
+        {
+            using var request = AuthorizedRequest(HttpMethod.Get, $"{baseUrl}/photos/{photoId}/full");
+
+            response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var status = response.StatusCode;
+                response.Dispose();
+                logger.LogWarning("Full photo {PhotoId} request failed with {Status}", photoId, status);
+
+                return Result<Stream, PhotoSourceError>.Fail(status switch
+                {
+                    HttpStatusCode.NotFound => PhotoSourceError.NotFound,
+                    HttpStatusCode.Unauthorized => PhotoSourceError.Unauthorized,
+                    _ => PhotoSourceError.Unknown
+                });
+            }
+
+            return Result<Stream, PhotoSourceError>.Ok(await response.Content.ReadAsStreamAsync(ct));
+        }
+        catch (HttpRequestException ex)
+        {
+            response?.Dispose();
+            logger.LogWarning(ex, "Phone unreachable while fetching photo {PhotoId}", photoId);
+            return Result<Stream, PhotoSourceError>.Fail(PhotoSourceError.Unreachable);
+        }
+        catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+        {
+            response?.Dispose();
+            logger.LogWarning(ex, "Timeout while fetching photo {PhotoId}", photoId);
+            return Result<Stream, PhotoSourceError>.Fail(PhotoSourceError.Unreachable);
+        }
+        catch (OperationCanceledException)
+        {
+            response?.Dispose();
+            throw;
+        }
     }
 
     private HttpRequestMessage AuthorizedRequest(HttpMethod method, string url)
