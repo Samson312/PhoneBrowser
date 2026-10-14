@@ -40,6 +40,25 @@ public class NavigationService : INavigationService
         }
     }
 
+    public void ResetTo<TViewModel>() where TViewModel : ViewModelBase
+    {
+        while (history.Count > 0)
+        {
+            var current = history.Pop();
+
+            try
+            {
+                current.Dispose();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error disposing {ViewModel} while clearing history", current.GetType().Name);
+            }
+        }
+
+        NavigateTo<TViewModel>();
+    }
+
     public void GoBack()
     {
         if (!CanGoBack)

@@ -7,6 +7,7 @@ public interface INavigationService
 {
     event Action<ViewModelBase>? CurrentViewModelChanged;
     void NavigateTo<TViewModel>() where TViewModel : ViewModelBase;
+    void ResetTo<TViewModel>() where TViewModel : ViewModelBase;
     void GoBack();
     bool CanGoBack { get; }
 }
