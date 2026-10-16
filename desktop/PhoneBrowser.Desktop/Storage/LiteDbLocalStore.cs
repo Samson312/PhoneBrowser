@@ -117,7 +117,7 @@ public sealed class LiteDbLocalStore: ILocalStore
     {
         try
         {
-            return trustedDevices.Query().OrderBy(x => x.Name).ToList();
+            return trustedDevices.Query().OrderBy(x => x.DeviceName).ToList();
         }
         catch (LiteException ex)
         {
@@ -133,7 +133,7 @@ public sealed class LiteDbLocalStore: ILocalStore
 
         try
         {
-            return trustedDevices.FindOne(x => x.Id == deviceId);
+            return trustedDevices.FindOne(x => x.DeviceId == deviceId);
         }
         catch (LiteException ex)
         {
@@ -144,17 +144,17 @@ public sealed class LiteDbLocalStore: ILocalStore
 
     public void SaveTrustedDevice(TrustedDevice device)
     {
-        if (string.IsNullOrWhiteSpace(device.Id))
+        if (string.IsNullOrWhiteSpace(device.DeviceId))
             throw new ArgumentException("DeviceId cannot be empty.", nameof(device));
 
         try
         {
             trustedDevices.Upsert(device);
-            logger.LogInformation("Saved trusted device {DeviceId} ({DeviceName})", device.Id, device.Name);
+            logger.LogInformation("Saved trusted device {DeviceId} ({DeviceName})", device.DeviceId, device.DeviceName);
         }
         catch (LiteException ex)
         {
-            logger.LogError(ex, "Failed to save trusted device {DeviceId}", device.Id);
+            logger.LogError(ex, "Failed to save trusted device {DeviceId}", device.DeviceId);
             throw;
         }
     }

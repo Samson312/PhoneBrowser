@@ -4,8 +4,6 @@ using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Errors;
 using PhoneBrowser.Desktop.Extensions;
 using PhoneBrowser.Desktop.Models;
-using PhoneBrowser.Desktop.Services.Pairing;
-using Serilog;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -15,13 +13,13 @@ using System.Windows.Media.Imaging;
 
 internal class HttpPhotoSourceService : IPhotoSourceService
 {
-    private readonly PairedDeviceService pairedDevice;
+    private readonly PairedDevice pairedDevice;
 
     private readonly HttpClient httpClient;
     private readonly ILogger<HttpPhotoSourceService> logger;
 
     public HttpPhotoSourceService(
-        PairedDeviceService pairedDevice,
+        PairedDevice pairedDevice,
         IHttpClientFactory httpClientFactory,
         ILogger<HttpPhotoSourceService> logger
     ){

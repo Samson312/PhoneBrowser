@@ -23,7 +23,7 @@ public partial class PairingViewModel : ViewModelBase
 
     private readonly ILogger<PairingViewModel> logger;
 
-    private readonly PairedDeviceService pairedDevice;
+    private readonly PairedDevice pairedDevice;
 
     private readonly HashSet<string> pairingInFlight = new();
 
@@ -37,7 +37,7 @@ public partial class PairingViewModel : ViewModelBase
         INavigationService navigation,
         ILocalStore store,
         ILogger<PairingViewModel> logger,
-        PairedDeviceService pairedDevice)
+        PairedDevice pairedDevice)
 	{
         this.discoveryService = discoveryService;
         this.pairingService = pairingService;
@@ -94,22 +94,26 @@ public partial class PairingViewModel : ViewModelBase
 
         if (token != null)
         {
-            pairedDevice?.SetDevice(device, token);
-            NextCommand.NotifyCanExecuteChanged();
-            AddTrustedDevice(device, token);
-            discoveryService.Stop();
+            var trustedDevice = AddTrustedDevice(device, token);
+
+            if (trustedDevice != null)
+            {
+                pairedDevice?.SetDevice(trustedDevice);
+                NextCommand.NotifyCanExecuteChanged();
+                discoveryService.Stop();
+            }
         }
         
         pairingInFlight.Remove(device.DeviceId);
     }
 
-    private void AddTrustedDevice(DiscoveredDevice device, string token)
+    private TrustedDevice? AddTrustedDevice(DiscoveredDevice device, string token)
     {
         var trustedDevice = new TrustedDevice
         {
-            Id = device.DeviceId,
-            Name = device.DeviceName,
-            PairingToken = token,
+            DeviceId = device.DeviceId,
+            DeviceName = device.DeviceName,
+            AuthToken = token,
             LastKnownIpAddress = device.IpAddress.ToString(),
             LastKnownPort = device.HttpPort,
             LastConnectedAt = DateTime.UtcNow
@@ -119,10 +123,12 @@ public partial class PairingViewModel : ViewModelBase
         {
             store.SaveTrustedDevice(trustedDevice);
             logger.LogInformation("Paired with device {DeviceName} ({DeviceId})", device.DeviceName, device.DeviceId);
+            return trustedDevice;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to persist trusted device {DeviceId} after successful pairing", device.DeviceId);
+            return null;
         }
     }
 

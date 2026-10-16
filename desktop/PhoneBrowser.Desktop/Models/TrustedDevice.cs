@@ -5,10 +5,10 @@ namespace PhoneBrowser.Desktop.Models;
 
 public record class TrustedDevice
 {
-    public string Id { get; init; }
-    public string Name { get; set; }
+    public string DeviceId { get; init; }
+    public string DeviceName { get; set; }
 
-    public string PairingToken { get; init; }
+    public string AuthToken { get; init; }
 
     public string LastKnownIpAddress { get; set; }
 
