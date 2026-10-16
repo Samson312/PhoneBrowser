@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Errors;
+using PhoneBrowser.Desktop.Extensions;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Pairing;
 using Serilog;
@@ -41,7 +42,9 @@ internal class HttpPhotoSourceService : IPhotoSourceService
 
         try
         {
-            using var request = AuthorizedRequest(HttpMethod.Get, url);
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                url).WithBearerToken(pairedDevice.AuthToken);
 
             var response = await httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -74,7 +77,10 @@ internal class HttpPhotoSourceService : IPhotoSourceService
 
         try 
         {
-            using var request = AuthorizedRequest(HttpMethod.Get, $"{baseUrl}/photos/{photoId}/thumbnail");
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{baseUrl}/photos/{photoId}/thumbnail")
+                .WithBearerToken(pairedDevice.AuthToken);
 
             using var response = await httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -109,7 +115,10 @@ internal class HttpPhotoSourceService : IPhotoSourceService
         HttpResponseMessage? response = null;
         try
         {
-            using var request = AuthorizedRequest(HttpMethod.Get, $"{baseUrl}/photos/{photoId}/full");
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{baseUrl}/photos/{photoId}/full")
+                .WithBearerToken(pairedDevice.AuthToken);
 
             response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
 
@@ -146,13 +155,6 @@ internal class HttpPhotoSourceService : IPhotoSourceService
             response?.Dispose();
             throw;
         }
-    }
-
-    private HttpRequestMessage AuthorizedRequest(HttpMethod method, string url)
-    {
-        var request = new HttpRequestMessage(method, url);
-        request.Headers.Authorization = new("Bearer", pairedDevice.AuthToken);
-        return request;
     }
 }
 
