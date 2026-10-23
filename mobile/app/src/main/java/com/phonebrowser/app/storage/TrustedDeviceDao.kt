@@ -15,6 +15,9 @@ interface TrustedDeviceDao {
     @Query("SELECT * FROM trusted_devices WHERE deviceId = :deviceId")
     suspend fun getById(deviceId: String): TrustedDeviceEntity?
 
+    @Query("Select * FROM trusted_devices WHERE pairingToken = :token")
+    suspend fun getByToken(token: String): TrustedDeviceEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(device: TrustedDeviceEntity)
 

@@ -42,9 +42,7 @@ class PairingViewModel @Inject constructor(
         val accepted = pairingManager.accept(entry.requestId) ?: return
 
         viewModelScope.launch {
-            val trustedDevice = saveTrustedDevice(accepted)
-            activeSessionService.setConnected(trustedDevice)
-            PhoneBrowserForegroundService.stopDiscovery(context)
+            saveTrustedDevice(accepted)
         }
     }
 

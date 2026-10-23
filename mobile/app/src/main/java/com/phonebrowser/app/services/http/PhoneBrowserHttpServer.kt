@@ -1,5 +1,7 @@
 package com.phonebrowser.app.services.http
 
+import com.phonebrowser.app.services.http.routes.connectEndpoint
+import com.phonebrowser.app.services.http.routes.disconnectEndpoint
 import com.phonebrowser.app.services.http.routes.pairingEndpoints
 import com.phonebrowser.app.services.http.routes.photoEndpoints
 import com.phonebrowser.app.services.media.PhotoRepository
@@ -63,6 +65,21 @@ class PhoneBrowserHttpServer @Inject constructor(
                             }
                         }
                     }
+
+                    bearer("auth-trusted"){
+                        realm = "PhoneBrowser"
+                        authenticate { tokenCredential ->
+                            val trustedDevice = trustedDeviceDao.getByToken(tokenCredential.token)
+
+                            if(trustedDevice != null)
+                            {
+                                UserIdPrincipal(trustedDevice.deviceId)
+                            } else{
+                                Timber.w("Rejected connection with invalid or not paired device")
+                                null
+                            }
+                        }
+                    }
                 }
 
                 routing {
@@ -72,8 +89,13 @@ class PhoneBrowserHttpServer @Inject constructor(
 
                     pairingEndpoints(pairingManager)
 
+                    authenticate("auth-trusted") {
+                        connectEndpoint(trustedDeviceDao, activeSession)
+                    }
+
                     authenticate("auth-bearer"){
                         photoEndpoints(photoRepository)
+                        disconnectEndpoint(activeSession)
                     }
                 }
             }.start(wait = false)
