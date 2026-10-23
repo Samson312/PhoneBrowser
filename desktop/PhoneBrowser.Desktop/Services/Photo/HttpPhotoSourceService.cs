@@ -42,7 +42,7 @@ internal class HttpPhotoSourceService : IPhotoSourceService
         {
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
-                url).WithBearerToken(pairedDevice.AuthToken);
+                url).WithBearerToken(pairedDevice.CurrentDevice.AuthToken);
 
             var response = await httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -78,7 +78,7 @@ internal class HttpPhotoSourceService : IPhotoSourceService
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
                 $"{baseUrl}/photos/{photoId}/thumbnail")
-                .WithBearerToken(pairedDevice.AuthToken);
+                .WithBearerToken(pairedDevice.CurrentDevice.AuthToken);
 
             using var response = await httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -116,7 +116,7 @@ internal class HttpPhotoSourceService : IPhotoSourceService
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
                 $"{baseUrl}/photos/{photoId}/full")
-                .WithBearerToken(pairedDevice.AuthToken);
+                .WithBearerToken(pairedDevice.CurrentDevice.AuthToken);
 
             response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
 

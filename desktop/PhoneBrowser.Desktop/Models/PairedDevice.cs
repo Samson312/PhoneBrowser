@@ -8,9 +8,7 @@ public class PairedDevice
 
     public TrustedDevice? CurrentDevice { get; private set; }
 
-    public string? AuthToken { get; private set; }
-
-    public bool IsPaired => CurrentDevice != null && AuthToken != null;
+    public bool IsPaired => CurrentDevice != null;
 
     public string? BaseUrl => IsPaired ? $"http://{CurrentDevice.LastKnownIpAddress}:{CurrentDevice.LastKnownPort}" : null;
 
@@ -21,8 +19,9 @@ public class PairedDevice
 
     public void SetDevice(TrustedDevice device)
     {
+        if (CurrentDevice == device) return;
+
         CurrentDevice = device;
-        AuthToken = device.AuthToken;
         logger.LogInformation("Paired device set: {DeviceName} ({DeviceId}) at {Address}:{Port}",
             device.DeviceName, device.DeviceId, device.LastKnownIpAddress, device.LastKnownPort);
     }
@@ -33,7 +32,6 @@ public class PairedDevice
             logger.LogInformation("Clearing paired device {DeviceName}", CurrentDevice.DeviceName);
 
         CurrentDevice = null;
-        AuthToken = null;
     }
 }
 
