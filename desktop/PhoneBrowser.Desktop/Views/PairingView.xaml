@@ -4,13 +4,90 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:PhoneBrowser.Desktop.Views"
+             xmlns:vm="clr-namespace:PhoneBrowser.Desktop.ViewModels"
+             xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="KnownDeviceTemplate">
+            <Border BorderBrush="Gray" BorderThickness="1"
+                        CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock  Text="{Binding Device.DeviceName}"
+                            VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock>
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="Sprawdzanie..." />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Available}">
+                                            <Setter Property="Text" Value="Dostępny" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Unreachable}">
+                                            <Setter Property="Text" Value="Nie odpowiada" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Connected}">
+                                            <Setter Property="Text" Value="Połączono" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <Button Grid.Column="1" CommandParameter="{Binding Device}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Content" Value="Połącz" />
+                                <Setter Property="Command" Value="{Binding DataContext.ConnectCommand,
+                                    RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Connected}">
+                                        <Setter Property="Content" Value="Rozłącz" />
+                                        <Setter Property="Command" Value="{Binding DataContext.DisconnectCommand,
+                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="NewDeviceTemplate">
+            <Border BorderBrush="Gray" BorderThickness="1"
+                CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock  Text="{Binding DeviceName}"
+                    VerticalAlignment="Center" FontWeight="SemiBold"/>
+
+                    <Button Grid.Column="1" Content="Paruj"
+                        Command="{Binding DataContext.PairCommand,
+                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                        CommandParameter="{Binding}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -26,31 +103,21 @@
                 Margin="0,0,0,16"
                 Grid.Row="1"/>
 
-        <ItemsControl ItemsSource="{Binding DevicesDiscovered}" Grid.Row="2">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border BorderBrush="Gray" BorderThickness="1"
-                        CornerRadius="6" Padding="10" Margin="0,0,0,8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Ostatnio połączone" />
+                <ItemsControl ItemsSource="{Binding DeviceList.KnownDevices}"
+                    ItemTemplate="{StaticResource KnownDeviceTemplate}" />
 
-                            <TextBlock Grid.Column="0" Text="{Binding DeviceName}"
-                                    VerticalAlignment="Center" FontWeight="SemiBold"/>
+                <TextBlock Text="Nowe urządzenia" />
+                <ItemsControl ItemsSource="{Binding DeviceList.NewDevices}"
+                    ItemTemplate="{StaticResource NewDeviceTemplate}" />
+            </StackPanel>
+        </ScrollViewer>
 
-                            <Button Grid.Column="1" Content="Połącz"
-                                Command="{Binding DataContext.PairCommand,
-                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}"/>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <controls:ErrorBanner Grid.Row="3" Margin="0,0,0,16" Message="{Binding ErrorMessage}"/>
 
-        <Grid Margin="0,16,0,0" Grid.Row="3">
+        <Grid Margin="0,16,0,0" Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="20"/>

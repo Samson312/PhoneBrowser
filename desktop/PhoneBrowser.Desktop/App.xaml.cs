@@ -16,6 +16,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Markup;
 using PhoneBrowser.Desktop.Models;
+using PhoneBrowser.Desktop.Services.Connection;
 
 /// <summary>
 /// Interaction logic for App.xaml
@@ -73,6 +74,7 @@ public partial class App : Application
 
         services.AddTransient<IUdpDiscoveryService, UdpDiscoveryService>();
         services.AddTransient<IPairingService, PairingService>();
+        services.AddTransient<IConnectionService, ConnectionService>();
         services.AddTransient<IPhotoSourceService, HttpPhotoSourceService>();
 
         services.AddTransient<InitialConfigurationViewModel>();
