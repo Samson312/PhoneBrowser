@@ -159,6 +159,26 @@ public sealed class LiteDbLocalStore: ILocalStore
         }
     }
 
+    public bool UpdateTrustedDevice(TrustedDevice device)
+    {
+        if (string.IsNullOrWhiteSpace(device.DeviceId))
+            throw new ArgumentException("DeviceId cannot be empty.", nameof(device));
+
+        try
+        {
+            var updated = trustedDevices.Update(device);
+
+            if(updated) logger.LogInformation("Updated: {DeviceId}", device.DeviceId);
+
+            return updated;
+        }
+        catch (LiteException ex)
+        {
+            logger.LogError(ex, "Failed to update trusted device {DeviceId}", device.DeviceId);
+            throw;
+        }
+    }
+
     public bool RemoveTrustedDevice(string deviceId)
     {
         if (string.IsNullOrWhiteSpace(deviceId)) return false;

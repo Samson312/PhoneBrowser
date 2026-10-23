@@ -11,6 +11,7 @@ public interface ILocalStore
     IReadOnlyList<TrustedDevice> GetTrustedDevices();
     TrustedDevice? GetTrustedDevice(string deviceId);
     void SaveTrustedDevice(TrustedDevice device);
+    bool UpdateTrustedDevice(TrustedDevice device);
     bool RemoveTrustedDevice(string deviceId);
 }
 

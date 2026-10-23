@@ -5,6 +5,7 @@ namespace PhoneBrowser.Desktop.Models;
 
 public record class TrustedDevice
 {
+    [BsonId]
     public string DeviceId { get; init; }
     public string DeviceName { get; set; }
 
