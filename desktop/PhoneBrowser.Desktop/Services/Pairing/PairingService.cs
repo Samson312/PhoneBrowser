@@ -1,8 +1,11 @@
 ﻿namespace PhoneBrowser.Desktop.Services.Pairing;
 
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using PhoneBrowser.Desktop.Errors;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Storage;
 
@@ -12,6 +15,8 @@ internal class PairingService: IPairingService
     private readonly ILogger<PairingService> logger;
 
     private SettingsProfile settings;
+
+    private readonly TimeSpan PairingTimeout = TimeSpan.FromSeconds(30);
 
     public PairingService(
         ILocalStore store,
@@ -24,7 +29,7 @@ internal class PairingService: IPairingService
         this.logger = logger;
     }
 
-    public async Task<string?> PairAsync(DiscoveredDevice device, CancellationToken ct)
+    public async Task<Result<string, PairingError>> PairAsync(DiscoveredDevice device, CancellationToken ct)
     {
         var requestId = Guid.NewGuid().ToString();
         var baseUrl = $"http://{device.IpAddress}:{device.HttpPort}";
@@ -39,17 +44,27 @@ internal class PairingService: IPairingService
             {
                 logger.LogWarning("Pairing request to {DeviceName} rejected with status {Status}",
                     device.DeviceName, postResponse.StatusCode);
-                return null;
+
+                if(postResponse.StatusCode == HttpStatusCode.Conflict)
+                    return Result<string, PairingError>.Fail(PairingError.Busy);
+
+                return Result<string, PairingError>.Fail(PairingError.Unknown);
             }
         }
         catch (HttpRequestException ex)
         {
             logger.LogError(ex, "Failed to reach {DeviceName} at {BaseUrl} while sending pairing request", device.DeviceName, baseUrl);
-            return null;
+            return Result<string, PairingError>.Fail(PairingError.Unreachable);
+        }
+        catch (TaskCanceledException) when (!ct.IsCancellationRequested)
+        {
+            logger.LogWarning("Pairing status poll timed out for request {RequestId}", requestId);
+            return Result<string, PairingError>.Fail(PairingError.Unreachable);
         }
 
 
-        var deadline = DateTime.UtcNow.AddSeconds(30);
+        var deadline = DateTime.UtcNow.Add(PairingTimeout);
+        bool anyPollSucceeded = false;
 
         while (DateTime.UtcNow < deadline)
         {
@@ -71,25 +86,43 @@ internal class PairingService: IPairingService
                 logger.LogWarning("Pairing status poll timed out for request {RequestId}", requestId);
                 continue;
             }
+            catch (JsonException ex)
+            {
+                logger.LogError(ex, "Phone responded with wrong format");
+                return Result<string, PairingError>.Fail(PairingError.Unknown);
+            }
 
             if (statusResponse == null) continue;
+
+            anyPollSucceeded = true;
 
             switch (statusResponse.status)
             {
                 case "ACCEPTED":
+                    if (string.IsNullOrEmpty(statusResponse.pairingToken))
+                    {
+                        logger.LogError("Pairing accepted by {DeviceName} but no token provided", device.DeviceName);
+                        return Result<string, PairingError>.Fail(PairingError.Unknown);
+                    }
+
                     logger.LogInformation("Pairing accepted by {DeviceName}", device.DeviceName);
-                    return statusResponse.pairingToken;
+                    return Result<string, PairingError>.Ok(statusResponse.pairingToken);
                 case "REJECTED":
                     logger.LogInformation("Pairing rejected by {DeviceName}", device.DeviceName);
-                    return null;
+                    return Result<string, PairingError>.Fail(PairingError.Rejected);
                 case "EXPIRED":
                     logger.LogInformation("Pairing request {RequestId} expired", requestId);
-                    return null;
+                    return Result<string, PairingError>.Fail(PairingError.TimedOut);
             }
         }
 
-        logger.LogWarning("Pairing request {RequestId} to {DeviceName} timed out after 30s", requestId, device.DeviceName);
-        return null;
+        if (anyPollSucceeded)
+        {
+            logger.LogWarning("Pairing request {RequestId} to {DeviceName} timed out after {Timeout}s", requestId, device.DeviceName, PairingTimeout.TotalSeconds);
+            return Result<string, PairingError>.Fail(PairingError.TimedOut);
+        }
 
+        logger.LogWarning("Failed to reach {DeviceName} at {BaseUrl} while sending pairing request", device.DeviceName, baseUrl);
+        return Result<string, PairingError>.Fail(PairingError.Unreachable);
     }
 }

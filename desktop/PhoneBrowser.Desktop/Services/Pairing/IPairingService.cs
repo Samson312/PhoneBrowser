@@ -1,10 +1,10 @@
 ﻿namespace PhoneBrowser.Desktop.Services.Pairing;
 
-
+using PhoneBrowser.Desktop.Errors;
 using PhoneBrowser.Desktop.Models;
 
 public interface IPairingService
 {
-    Task<string?> PairAsync(DiscoveredDevice device, CancellationToken ct);
+    Task<Result<string, PairingError>> PairAsync(DiscoveredDevice device, CancellationToken ct);
 }
 

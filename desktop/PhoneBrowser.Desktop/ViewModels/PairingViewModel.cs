@@ -190,10 +190,15 @@ public partial class PairingViewModel : ViewModelBase
             IsBusy = true;
             ErrorMessage = null;
 
-            var token = await pairingService.PairAsync(device, cts.Token);
-            if (token == null) return;
+            var result = await pairingService.PairAsync(device, cts.Token);
+
+            if (!result.IsSuccess)
+            {
+                ErrorMessage = ErrorMessages.Pairing(result.Error.Value);
+                return;
+            }
             
-            var trustedDevice = AddTrustedDevice(device, token);
+            var trustedDevice = AddTrustedDevice(device, result.Value);
             if (trustedDevice == null) return;
 
             DeviceList.UpdateList(trustedDevice);
