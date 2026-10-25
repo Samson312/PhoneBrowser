@@ -26,13 +26,24 @@ public partial class SaveLocationViewModel : ViewModelBase
         get
         {
             var trimmed = Path.TrimEndingDirectorySeparator(DirectoryPath);
-            var name = Path.GetFileName(trimmed);
+            //var name = Path.GetFileName(trimmed);
+            var name = ShellNames.GetDisplayName(trimmed);
+            return string.IsNullOrEmpty(name) ? DirectoryPath : name;
+        }
+    }
+
+    public string DisplayDirectoryPath
+    {
+        get
+        {
+            var trimmed = Path.TrimEndingDirectorySeparator(DirectoryPath);
+            var name = ShellNames.GetDisplayPath(trimmed);
             return string.IsNullOrEmpty(name) ? DirectoryPath : name;
         }
     }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DirectoryName))]
+    [NotifyPropertyChangedFor(nameof(DirectoryName), nameof(DisplayDirectoryPath))]
     private string directoryPath = "";
 
     [ObservableProperty] 
