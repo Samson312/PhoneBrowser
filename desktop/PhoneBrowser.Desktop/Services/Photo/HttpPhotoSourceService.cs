@@ -70,8 +70,9 @@ internal class HttpPhotoSourceService : IPhotoSourceService
 
     public async Task<BitmapImage?> GetThumbnailAsync(string photoId)
     {
-        var baseUrl = pairedDevice.BaseUrl
-            ?? throw new InvalidOperationException("Brak połączonego urządzenia.");
+        var baseUrl = pairedDevice.BaseUrl;
+
+        if (baseUrl == null) return null;
 
         try 
         {
