@@ -14,24 +14,29 @@ public partial class PhotoTileViewModel : ObservableObject
     private ImageSource? thumbnail;
 
     [ObservableProperty]
-    private bool thumbnailFailed;
-
-    [ObservableProperty]
     private bool isSelected;
+
+    private readonly IPhotoSourceService photoSource;
+
+    private bool thumbnailRequested = false;
 
     public PhotoTileViewModel(PhotoItem photo, IPhotoSourceService photoSource)
     {
+        this.photoSource = photoSource;
         Photo = photo;
-        _ = LoadThumbnailAsync(photoSource);
     }
 
-    private async Task LoadThumbnailAsync(IPhotoSourceService photoSource)
+    [RelayCommand]
+    private async Task LoadThumbnailAsync()
     {
+        if (thumbnailRequested == true) return;
+            thumbnailRequested = true;
+
         var bitmap = await photoSource.GetThumbnailAsync(Photo.PhotoId);
 
-        if (bitmap is null)
+        if (bitmap == null)
         {
-            ThumbnailFailed = true; // TODO: placeholder w XAML zamiast pustego kafelka
+            thumbnailRequested = false; 
             return;
         }
 

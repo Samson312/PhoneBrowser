@@ -1,11 +1,13 @@
 ﻿<UserControl x:Class="PhoneBrowser.Desktop.Views.PhotoGalleryView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
              xmlns:converters="clr-namespace:PhoneBrowser.Desktop.Converters">
 
     <UserControl.Resources>
         <converters:SelectedToThicknessConverter x:Key="SelectedToThicknessConverter"/>
-        
+
         <CollectionViewSource x:Key="GroupedPhotos" Source="{Binding Photos}">
             <CollectionViewSource.GroupDescriptions>
                 <PropertyGroupDescription PropertyName="Photo.DateTakenUtc.Date" />
@@ -23,57 +25,102 @@
         <TextBlock Text="Wybierz zdjęcia" FontSize="25" FontWeight="SemiBold"
                    HorizontalAlignment="Center" Margin="0,0,0,16" Grid.Row="0"/>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Source={StaticResource GroupedPhotos}}" Grid.Row="1">
-                <ItemsControl.GroupStyle>
-                    <GroupStyle>
-                        <GroupStyle.HeaderTemplate>
-                            <DataTemplate>
-                                <Grid Margin="0,12,0,6">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+        <vwp:VirtualizingItemsControl ItemsSource="{Binding Source={StaticResource GroupedPhotos}}"
+                                      VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                                      ScrollViewer.CanContentScroll="True"
+                                      Grid.Row="1">
 
-                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Name, StringFormat='dd MMMM yyyy'}"
-                                            FontWeight="SemiBold" FontSize="15"/>
-                                        <TextBlock Text="{Binding ItemCount, StringFormat=' — {0} zdjęć'}"
-                                           FontSize="13" Foreground="Gray" Margin="6,0,0,0"
-                                           VerticalAlignment="Center"/>
-                                    </StackPanel>
+            
+            <vwp:VirtualizingItemsControl.Template>
+                <ControlTemplate TargetType="ItemsControl">
+                    <ScrollViewer CanContentScroll="True"
+                                  VerticalScrollBarVisibility="Auto"
+                                  Focusable="False">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </vwp:VirtualizingItemsControl.Template>
 
-                                    <Button Grid.Column="1" Content="Zaznacz dzień"
+            <vwp:VirtualizingItemsControl.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,12,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name, StringFormat='dd MMMM yyyy'}"
+                                               FontWeight="SemiBold" FontSize="15"/>
+                                    <TextBlock Text="{Binding ItemCount, StringFormat=' — {0} zdjęć'}"
+                                               FontSize="13" Foreground="Gray" Margin="6,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="1" Content="Zaznacz dzień"
                                         Command="{Binding DataContext.ToggleDayCommand,
                                         RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                         CommandParameter="{Binding Items}"/>
-                                </Grid>
-                            </DataTemplate>
-                        </GroupStyle.HeaderTemplate>
-                    </GroupStyle>
-                </ItemsControl.GroupStyle>
+                            </Grid>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
 
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Columns="4" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+                    
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
 
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Margin="4" CornerRadius="8"
-                                BorderThickness="{Binding IsSelected, Converter={StaticResource SelectedToThicknessConverter}}"
-                                BorderBrush="#378add"
-                                Height="250" Width="250">
-                            <Button Command="{Binding ToggleCommand}"
-                                    BorderThickness="0" Background="Transparent" Padding="0">
-                                <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
-                            </Button>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                    
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                        <StackPanel>
+                                            
+                                            <ContentPresenter
+                                                Content="{TemplateBinding Content}"
+                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                ContentStringFormat="{TemplateBinding ContentStringFormat}"/>
+                                            <ItemsPresenter Margin="0"/>
+                                        </StackPanel>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </vwp:VirtualizingItemsControl.GroupStyle>
+
+            <vwp:VirtualizingItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <vwp:VirtualizingWrapPanel />
+                </ItemsPanelTemplate>
+            </vwp:VirtualizingItemsControl.ItemsPanel>
+
+            <vwp:VirtualizingItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="4" CornerRadius="8"
+                            BorderThickness="{Binding IsSelected, Converter={StaticResource SelectedToThicknessConverter}}"
+                            BorderBrush="#378add"
+                            Height="250" Width="250">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Loaded">
+                                <i:InvokeCommandAction Command="{Binding LoadThumbnailCommand}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                        <Button Command="{Binding ToggleCommand}"
+                                BorderThickness="0" Background="Transparent" Padding="0">
+                            <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+                        </Button>
+                    </Border>
+                </DataTemplate>
+            </vwp:VirtualizingItemsControl.ItemTemplate>
+        </vwp:VirtualizingItemsControl>
 
         <Grid Margin="0,16,0,0" Grid.Row="2">
             <Grid.ColumnDefinitions>
