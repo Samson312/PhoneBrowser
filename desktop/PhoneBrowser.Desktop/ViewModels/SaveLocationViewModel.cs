@@ -26,7 +26,6 @@ public partial class SaveLocationViewModel : ViewModelBase
         get
         {
             var trimmed = Path.TrimEndingDirectorySeparator(DirectoryPath);
-            //var name = Path.GetFileName(trimmed);
             var name = ShellNames.GetDisplayName(trimmed);
             return string.IsNullOrEmpty(name) ? DirectoryPath : name;
         }
