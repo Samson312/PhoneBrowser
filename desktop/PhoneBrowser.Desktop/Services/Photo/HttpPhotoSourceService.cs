@@ -28,15 +28,14 @@ internal class HttpPhotoSourceService : IPhotoSourceService
         this.logger = logger;
     }
 
-    public async Task<IReadOnlyList<PhotoItem>> GetPhotosAsync(long? since = null)
+    public async Task<Result<IReadOnlyList<PhotoItem>,PhotoSourceError>> GetPhotosAsync(CancellationToken ct)
     {
-        var baseUrl = pairedDevice.BaseUrl
-            ?? throw new InvalidOperationException("Brak połączonego urządzenia.");
+        var baseUrl = pairedDevice.BaseUrl;
+
+        if (baseUrl == null)
+            return Result<IReadOnlyList<PhotoItem>, PhotoSourceError>.Fail(PhotoSourceError.Unreachable);
 
         var url = $"{baseUrl}/photos";
-
-        if (since.HasValue)
-            url += $"?since={since.Value}";
 
         try
         {
@@ -44,27 +43,41 @@ internal class HttpPhotoSourceService : IPhotoSourceService
                 HttpMethod.Get,
                 url).WithBearerToken(pairedDevice.CurrentDevice.AuthToken);
 
-            var response = await httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            using var response = await httpClient.SendAsync(request, ct);
 
+            if (!response.IsSuccessStatusCode)
+            {
+                var status = response.StatusCode;
+                logger.LogWarning("Photo list request failed with {Status}", status);
 
-            return await response.Content.ReadFromJsonAsync<List<PhotoItem>>()
-                   ?? new List<PhotoItem>();
+                return Result<IReadOnlyList<PhotoItem>, PhotoSourceError>.Fail(status switch
+                {
+                    HttpStatusCode.Unauthorized => PhotoSourceError.Unauthorized,
+                    _ => PhotoSourceError.Unknown
+                });
+            }
+
+            var photoList = await response.Content.ReadFromJsonAsync<List<PhotoItem>>(ct);
+
+            if (photoList == null)
+                return Result<IReadOnlyList<PhotoItem>, PhotoSourceError>.Fail(PhotoSourceError.Unknown);
+
+            return Result<IReadOnlyList<PhotoItem>, PhotoSourceError>.Ok(photoList);
         }
         catch (HttpRequestException ex)
         {
             logger.LogError(ex, "Failed to fetch photo list from {Url}", url);
-            return new List<PhotoItem>();
+            return Result<IReadOnlyList<PhotoItem>, PhotoSourceError>.Fail(PhotoSourceError.Unreachable);
         }
         catch (JsonException ex)
         {
             logger.LogError(ex, "Failed to parse photo list response from {Url}", url);
-            return new List<PhotoItem>();
+            return Result<IReadOnlyList<PhotoItem>, PhotoSourceError>.Fail(PhotoSourceError.Unknown);
         }
-        catch (TaskCanceledException ex)
+        catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
         {
             logger.LogWarning(ex, "Photo list request to {Url} timed out", url);
-            return new List<PhotoItem>();
+            return Result<IReadOnlyList<PhotoItem>, PhotoSourceError>.Fail(PhotoSourceError.Unreachable);
         }
     }
 

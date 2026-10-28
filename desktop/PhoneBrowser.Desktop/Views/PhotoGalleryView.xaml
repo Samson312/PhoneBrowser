@@ -3,10 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
-             xmlns:converters="clr-namespace:PhoneBrowser.Desktop.Converters">
+             xmlns:converters="clr-namespace:PhoneBrowser.Desktop.Converters"
+             xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls">
 
     <UserControl.Resources>
         <converters:SelectedToThicknessConverter x:Key="SelectedToThicknessConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
         <CollectionViewSource x:Key="GroupedPhotos" Source="{Binding Photos}">
             <CollectionViewSource.GroupDescriptions>
@@ -18,6 +20,7 @@
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -25,10 +28,17 @@
         <TextBlock Text="Wybierz zdjęcia" FontSize="25" FontWeight="SemiBold"
                    HorizontalAlignment="Center" Margin="0,0,0,16" Grid.Row="0"/>
 
+        <controls:ErrorBanner Message="{Binding ErrorMessage}" Grid.Row="1"/>
+
+        <StackPanel Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" Grid.Row="2">
+            <TextBlock Text="Brak zdjęć do wyświetlenia"/>
+            <TextBlock Text="Sprawdź, czy aplikacja na telefonie ma dostęp do zdjęć" />
+        </StackPanel>
+
         <vwp:VirtualizingItemsControl ItemsSource="{Binding Source={StaticResource GroupedPhotos}}"
                                       VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                                       ScrollViewer.CanContentScroll="True"
-                                      Grid.Row="1">
+                                      Grid.Row="2">
 
             
             <vwp:VirtualizingItemsControl.Template>
@@ -122,7 +132,7 @@
             </vwp:VirtualizingItemsControl.ItemTemplate>
         </vwp:VirtualizingItemsControl>
 
-        <Grid Margin="0,16,0,0" Grid.Row="2">
+        <Grid Margin="0,16,0,0" Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="20"/>
