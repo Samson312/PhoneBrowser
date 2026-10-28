@@ -1,15 +1,13 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿namespace PhoneBrowser.Desktop.ViewModels;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using PhoneBrowser.Desktop.Errors;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Services.Photo;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Net.Http;
-using System.Windows.Media.Imaging;
-
-namespace PhoneBrowser.Desktop.ViewModels;
 
 public partial class PhotoGalleryViewModel : ViewModelBase
 {
@@ -21,7 +19,12 @@ public partial class PhotoGalleryViewModel : ViewModelBase
     public ObservableCollection<PhotoTileViewModel> Photos { get; } = new();
 
     [ObservableProperty]
-    private bool isLoading;
+    private UserMessage? errorMessage = null;
+
+    [ObservableProperty]
+    private bool isEmpty = false;
+
+    private readonly CancellationTokenSource cts = new();
 
     public int SelectedCount => Photos.Count(p => p.IsSelected);
 
@@ -44,19 +47,26 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     private async Task LoadPhotosAsync()
     {
-        IsLoading = true;
 
         try
         {
-            var items = await photoSource.GetPhotosAsync(null);
+            var result = await photoSource.GetPhotosAsync(cts.Token);
 
-            if (items.Count == 0)
+            if (!result.IsSuccess)
             {
-                logger.LogInformation("No photos found on source device");
+                ErrorMessage = ErrorMessages.Gallery(result.Error.Value);
                 return;
             }
 
-            foreach (var item in items.OrderByDescending(p => p.DateTakenUtc))
+            var photos = result.Value;
+
+            if (photos.Count == 0)
+            {
+                IsEmpty = true;
+                return;
+            }
+
+            foreach (var item in photos.OrderByDescending(p => p.DateTakenUtc))
             {
                 var tile = new PhotoTileViewModel(item, photoSource);
                 tile.PropertyChanged += (_, e) =>
@@ -70,16 +80,20 @@ public partial class PhotoGalleryViewModel : ViewModelBase
                 Photos.Add(tile);
             }
 
-            logger.LogInformation("Loaded {Count} photos", items.Count);
+            logger.LogInformation("Loaded {Count} photos", photos.Count);
         }
+        catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to load photo gallery");
+            ErrorMessage = ErrorMessages.Gallery(PhotoSourceError.Unknown);
+            logger.LogError(ex, "Unexpected error happened");
         }
-        finally
-        {
-            IsLoading = false;
-        }
+    }
+
+    public override void Dispose()
+    {
+        cts.Cancel();
+        cts.Dispose();
     }
 
     [RelayCommand]

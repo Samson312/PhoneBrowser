@@ -9,7 +9,7 @@ public enum PhotoSourceError { Unreachable, NotFound, Unauthorized, Unknown }
 
 public interface IPhotoSourceService
 {
-    Task<IReadOnlyList<PhotoItem>> GetPhotosAsync(long? since);
+    Task<Result<IReadOnlyList<PhotoItem>, PhotoSourceError>> GetPhotosAsync(CancellationToken ct);
 
     Task<BitmapImage?> GetThumbnailAsync(string photoId);
 
