@@ -141,7 +141,7 @@
 
             <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand}"/>
             <Button Grid.Column="2" Command="{Binding NextCommand}">
-                <TextBlock Text="{Binding SelectedCount, StringFormat='Prześlij {0} zdjęć'}"/>
+                <TextBlock Text="{Binding ButtonText}"/>
             </Button>
         </Grid>
     </Grid>

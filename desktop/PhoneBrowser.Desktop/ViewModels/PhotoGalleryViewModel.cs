@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Errors;
+using PhoneBrowser.Desktop.Helpers;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Services.Photo;
@@ -18,6 +19,10 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     public ObservableCollection<PhotoTileViewModel> Photos { get; } = new();
 
+    public string ButtonText => SelectedCount > 0 
+        ? $"Prześlij {PolishPlural.Photos(SelectedCount)}" 
+        : "Wybierz zdjęcia";
+
     [ObservableProperty]
     private UserMessage? errorMessage = null;
 
@@ -26,7 +31,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     private readonly CancellationTokenSource cts = new();
 
-    public int SelectedCount => Photos.Count(p => p.IsSelected);
+    private int SelectedCount => Photos.Count(p => p.IsSelected);
 
     private bool CanGoNext => SelectedCount > 0;
 
@@ -73,7 +78,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
                 {
                     if (e.PropertyName == nameof(PhotoTileViewModel.IsSelected))
                     {
-                        OnPropertyChanged(nameof(SelectedCount));
+                        OnPropertyChanged(nameof(ButtonText));
                         NextCommand.NotifyCanExecuteChanged();
                     }
                 };
