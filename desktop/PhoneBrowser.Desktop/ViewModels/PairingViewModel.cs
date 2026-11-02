@@ -22,10 +22,17 @@ public partial class PairingViewModel : ViewModelBase
     private readonly ILocalStore store;
     private readonly ILogger<PairingViewModel> logger;
     private readonly PairedDevice pairedDevice;
-    public DeviceListViewModel DeviceList { get; }
-    private readonly CancellationTokenSource cts = new();
 
+    public DeviceListViewModel DeviceList { get; }
+    public bool IsWaitingForPhone => WaitingDeviceName != null;
+
+    private readonly CancellationTokenSource cts = new();
+    private CancellationTokenSource? pairingCts;
     private readonly DispatcherTimer availabilityTimer = new() { Interval =  TimeSpan.FromSeconds(1) };
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsWaitingForPhone))]
+    private string? waitingDeviceName;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(PairCommand), nameof(ConnectCommand), nameof(DisconnectCommand))]
@@ -189,8 +196,11 @@ public partial class PairingViewModel : ViewModelBase
         {
             IsBusy = true;
             ErrorMessage = null;
+            WaitingDeviceName = device.DeviceName;
 
-            var result = await pairingService.PairAsync(device, cts.Token);
+            pairingCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
+
+            var result = await pairingService.PairAsync(device, pairingCts.Token);
 
             if (!result.IsSuccess)
             {
@@ -205,11 +215,18 @@ public partial class PairingViewModel : ViewModelBase
 
             await TryConnectAsync(trustedDevice);
         }
+        catch(OperationCanceledException) { }
         finally
         {
+            WaitingDeviceName = null;
+            pairingCts?.Dispose();
+            pairingCts = null;
             IsBusy = false;
         }
     }
+
+    [RelayCommand]
+    private void CancelPairing() => pairingCts?.Cancel();
 
     [RelayCommand(CanExecute = nameof(CanOperate))]
     private async Task ConnectAsync(TrustedDevice device)

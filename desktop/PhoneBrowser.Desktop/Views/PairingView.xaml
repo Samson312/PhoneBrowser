@@ -80,6 +80,7 @@
                 </Grid>
             </Border>
         </DataTemplate>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </UserControl.Resources>
 
     <Grid Margin="20">
@@ -128,5 +129,14 @@
             <Button Grid.Column="2" Content="Dalej" Command="{Binding NextCommand}" />
         </Grid>
 
+        <Grid Grid.RowSpan="5" Background="White"
+              Visibility="{Binding IsWaitingForPhone, Converter={StaticResource BoolToVis}}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="Potwierdź połączenie na telefonie" HorizontalAlignment="Center" FontSize="24"/>
+                <TextBlock Text="{Binding WaitingDeviceName, StringFormat='Czekamy na odpowiedź z urządzenia {0}.'}" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                <TextBlock Text="Jeśli ekran telefonu jest wygaszony, odblokuj go i otwórz aplikację PhoneBrowser" Margin="0,0,0,16"/>
+                <Button Content="Anuluj" Command="{Binding CancelPairingCommand}" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>
