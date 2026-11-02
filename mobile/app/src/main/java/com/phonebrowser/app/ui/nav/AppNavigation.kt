@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import com.phonebrowser.app.ui.home.HomeScreen
 import com.phonebrowser.app.ui.initialConfig.InitialConfigScreen
 import com.phonebrowser.app.ui.pairing.PairingScreen
+import com.phonebrowser.app.ui.permissions.PhotoPermissionScreen
 import com.phonebrowser.app.viewmodels.AppViewModel
 
 @Composable
@@ -35,9 +36,23 @@ fun AppNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = if (hasProfile == true) Route.Home.route else Route.InitialConfig.route,
+        startDestination = when {
+            !appViewModel.hasPhotoPermission -> Route.PhotoPermission.route
+            hasProfile == true -> Route.Home.route
+            else -> Route.InitialConfig.route
+        },
         modifier = modifier,
     ){
+        composable(Route.PhotoPermission.route) {
+            PhotoPermissionScreen(onGranted = {
+               navController.navigate(
+                   if (hasProfile == true) Route.Home.route else Route.InitialConfig.route
+               ) {
+                   popUpTo(Route.PhotoPermission.route) { inclusive = true }
+               }
+            })
+        }
+
         composable(Route.InitialConfig.route) {
             InitialConfigScreen(onSaved = {
                 navController.navigate(Route.Home.route) {
