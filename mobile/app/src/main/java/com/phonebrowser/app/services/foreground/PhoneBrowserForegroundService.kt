@@ -43,10 +43,12 @@ class PhoneBrowserForegroundService: Service() {
             return START_NOT_STICKY
         }
 
-        httpServer.start()
-        udpDiscovery.startBroadcasting(serviceScope)
-        Timber.i("PhoneBrowser foreground service started")
-
+        serviceScope.launch {
+            httpServer.start()
+            udpDiscovery.startBroadcasting(serviceScope)
+            Timber.i("PhoneBrowser foreground service started")
+        }
+        
         return START_NOT_STICKY
     }
 
