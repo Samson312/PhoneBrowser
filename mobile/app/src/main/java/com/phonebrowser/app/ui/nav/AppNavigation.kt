@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.phonebrowser.app.ui.connected.ConnectedScreen
 import com.phonebrowser.app.ui.home.HomeScreen
 import com.phonebrowser.app.ui.initialConfig.InitialConfigScreen
 import com.phonebrowser.app.ui.pairing.PairingScreen
@@ -25,6 +26,7 @@ fun AppNavigation(
 {
     val incomingRequest by appViewModel.incomingRequest.collectAsStateWithLifecycle()
     val hasProfile by appViewModel.hasProfile.collectAsStateWithLifecycle()
+    val isConnected by appViewModel.isConnected.collectAsStateWithLifecycle()
 
     LaunchedEffect(incomingRequest) {
         if(incomingRequest != null){
@@ -33,6 +35,21 @@ fun AppNavigation(
     }
 
     if (hasProfile == null) return
+
+    LaunchedEffect(isConnected, hasProfile) {
+        if(hasProfile != true) return@LaunchedEffect
+
+        if(isConnected){
+            navController.navigate(Route.Connected.route) {
+                popUpTo(Route.Home.route) { inclusive = true }
+                launchSingleTop = true
+            }
+        } else if (navController.currentDestination?.route == Route.Connected.route) {
+            navController.navigate(Route.Home.route) {
+                popUpTo(Route.Connected.route) { inclusive = true }
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -67,5 +84,7 @@ fun AppNavigation(
         composable(Route.Pairing.route) {
             PairingScreen(onHandled = { navController.popBackStack() })
         }
+
+        composable(Route.Connected.route) { ConnectedScreen() }
     }
 }
