@@ -4,20 +4,19 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
              xmlns:converters="clr-namespace:PhoneBrowser.Desktop.Converters"
-             xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls">
+             xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls"
+             xmlns:vm="clr-namespace:PhoneBrowser.Desktop.ViewModels">
 
     <UserControl.Resources>
         <converters:SelectedToThicknessConverter x:Key="SelectedToThicknessConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
-
-        <CollectionViewSource x:Key="GroupedPhotos" Source="{Binding Photos}">
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="Photo.DateTakenUtc.Date" />
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
     </UserControl.Resources>
 
     <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -35,102 +34,144 @@
             <TextBlock Text="Sprawdź, czy aplikacja na telefonie ma dostęp do zdjęć" />
         </StackPanel>
 
-        <vwp:VirtualizingItemsControl ItemsSource="{Binding Source={StaticResource GroupedPhotos}}"
-                                      VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                                      ScrollViewer.CanContentScroll="True"
-                                      Grid.Row="2">
-
+        <ListBox x:Name="PhotosList" Grid.Row="2"
+         ItemsSource="{Binding Rows}"
+         BorderThickness="0"
+         VirtualizingPanel.IsVirtualizing="True"
+         VirtualizingPanel.ScrollUnit="Item"
+         ScrollViewer.CanContentScroll="True"
+         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+         SizeChanged="OnPhotosListSizeChanged"
+         PreviewMouseWheel="OnPhotosListPreviewMouseWheel"
+         FlowDirection="RightToLeft">
             
-            <vwp:VirtualizingItemsControl.Template>
-                <ControlTemplate TargetType="ItemsControl">
-                    <ScrollViewer CanContentScroll="True"
-                                  VerticalScrollBarVisibility="Auto"
-                                  Focusable="False">
-                        <ItemsPresenter />
-                    </ScrollViewer>
-                </ControlTemplate>
-            </vwp:VirtualizingItemsControl.Template>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Focusable" Value="False"/>
+                    <Setter Property="FlowDirection" Value="LeftToRight" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
 
-            <vwp:VirtualizingItemsControl.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,12,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Name, StringFormat='dd MMMM yyyy'}"
-                                               FontWeight="SemiBold" FontSize="15"/>
-                                    <TextBlock Text="{Binding ItemCount, StringFormat=' — {0} zdjęć'}"
-                                               FontSize="13" Foreground="Gray" Margin="6,0,0,0"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-
-                                <Button Grid.Column="1" Content="Zaznacz dzień"
-                                        Command="{Binding DataContext.ToggleDayCommand,
-                                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding Items}"/>
-                            </Grid>
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-
-                    
-                    <GroupStyle.Panel>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel Orientation="Vertical"/>
-                        </ItemsPanelTemplate>
-                    </GroupStyle.Panel>
-
-                    
-                    <GroupStyle.ContainerStyle>
-                        <Style TargetType="{x:Type GroupItem}">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type GroupItem}">
-                                        <StackPanel>
-                                            
-                                            <ContentPresenter
-                                                Content="{TemplateBinding Content}"
-                                                ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                ContentStringFormat="{TemplateBinding ContentStringFormat}"/>
-                                            <ItemsPresenter Margin="0"/>
-                                        </StackPanel>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </GroupStyle.ContainerStyle>
-                </GroupStyle>
-            </vwp:VirtualizingItemsControl.GroupStyle>
-
-            <vwp:VirtualizingItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <vwp:VirtualizingWrapPanel />
-                </ItemsPanelTemplate>
-            </vwp:VirtualizingItemsControl.ItemsPanel>
-
-            <vwp:VirtualizingItemsControl.ItemTemplate>
-                <DataTemplate>
+            <ListBox.Resources>
+                <DataTemplate x:Key="PhotoTileTemplate">
                     <Border Margin="4" CornerRadius="8"
-                            BorderThickness="{Binding IsSelected, Converter={StaticResource SelectedToThicknessConverter}}"
-                            BorderBrush="#378add"
-                            Height="250" Width="250">
+                    BorderThickness="{Binding IsSelected, Converter={StaticResource SelectedToThicknessConverter}}"
+                    BorderBrush="#378add"
+                    Height="250" Width="250">
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="Loaded">
                                 <i:InvokeCommandAction Command="{Binding LoadThumbnailCommand}" />
                             </i:EventTrigger>
                         </i:Interaction.Triggers>
                         <Button Command="{Binding ToggleCommand}"
-                                BorderThickness="0" Background="Transparent" Padding="0">
+                        BorderThickness="0" Background="Transparent" Padding="0">
                             <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
                         </Button>
                     </Border>
                 </DataTemplate>
-            </vwp:VirtualizingItemsControl.ItemTemplate>
-        </vwp:VirtualizingItemsControl>
+
+                <DataTemplate DataType="{x:Type vm:DayHeaderRow}">
+                    <Grid Margin="0,12,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <TextBlock Text="{Binding Date, StringFormat='dd MMMM yyyy'}"
+                               FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="{Binding Tiles.Count, StringFormat=' — {0} zdjęć'}"
+                               FontSize="13" Foreground="Gray" Margin="6,0,0,0"
+                               VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="Zaznacz dzień"
+                        Command="{Binding DataContext.ToggleDayCommand,
+                                  RelativeSource={RelativeSource AncestorType=ListBox}}"
+                        CommandParameter="{Binding Tiles}"/>
+                    </Grid>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type vm:PhotoTilesRow}">
+                    <ItemsControl ItemsSource="{Binding Tiles}"
+                          ItemTemplate="{StaticResource PhotoTileTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </DataTemplate>
+            </ListBox.Resources>
+        </ListBox>
+
+        <Grid x:Name="NavPanel" Grid.Row="2" Grid.Column="1" Width="260" Margin="16,0,0,0"
+      DataContext="{Binding DateNavigation}">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  Visibility="{Binding IsYearLevel, Converter={StaticResource BoolToVis}}">
+                <ItemsControl ItemsSource="{Binding Years}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button MinHeight="52" Margin="0,0,0,8" HorizontalContentAlignment="Stretch"
+                            Command="{Binding DataContext.SelectYearCommand, ElementName=NavPanel}"
+                            CommandParameter="{Binding}">
+                                <StackPanel Margin="8,4">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} - {1}">
+                                                <Binding Path="Year"/>
+                                                <Binding Path="CountText"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <DockPanel Visibility="{Binding IsMonthLevel, Converter={StaticResource BoolToVis}}">
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <Button Content="← Wybór roku" MinHeight="52" Command="{Binding BackToYearsCommand}"/>
+                    <TextBlock Text="{Binding SelectedYear}" FontSize="25" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                </StackPanel>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Months}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button MinHeight="52" Margin="0,0,0,8" HorizontalContentAlignment="Stretch"
+                                Command="{Binding DataContext.SelectMonthCommand, ElementName=NavPanel}"
+                                CommandParameter="{Binding}">
+                                    <StackPanel Margin="8,4">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0} - {1}">
+                                                    <Binding Path="Name"/>
+                                                    <Binding Path="CountText"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Grid>
 
         <Grid Margin="0,16,0,0" Grid.Row="3">
             <Grid.ColumnDefinitions>

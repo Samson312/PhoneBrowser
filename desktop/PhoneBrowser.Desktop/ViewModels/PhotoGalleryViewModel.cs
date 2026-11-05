@@ -23,6 +23,14 @@ public partial class PhotoGalleryViewModel : ViewModelBase
         ? $"Prześlij {PolishPlural.Photos(SelectedCount)}" 
         : "Wybierz zdjęcia";
 
+    public DateNavigationViewModel DateNavigation { get; } = new();
+
+    public ObservableCollection<GalleryRow> Rows { get; } = new();
+
+    public event Action<int>? ScrollToRowRequested;
+
+    private int columnCount = 4;
+
     [ObservableProperty]
     private UserMessage? errorMessage = null;
 
@@ -47,7 +55,15 @@ public partial class PhotoGalleryViewModel : ViewModelBase
         this.logger = logger;
         this.transferDraft = transferDraft;
 
+        DateNavigation.MonthSelected += OnMonthSelected;
+
         _ = LoadPhotosAsync();
+    }
+    public override void Dispose()
+    {
+        DateNavigation.MonthSelected -= OnMonthSelected;
+        cts.Cancel();
+        cts.Dispose();
     }
 
     private async Task LoadPhotosAsync()
@@ -84,6 +100,8 @@ public partial class PhotoGalleryViewModel : ViewModelBase
                 };
                 Photos.Add(tile);
             }
+            RebuildRows();
+            DateNavigation.Load(photos);
 
             logger.LogInformation("Loaded {Count} photos", photos.Count);
         }
@@ -95,10 +113,49 @@ public partial class PhotoGalleryViewModel : ViewModelBase
         }
     }
 
-    public override void Dispose()
+    public void SetColumnCount(int count)
     {
-        cts.Cancel();
-        cts.Dispose();
+        if (count == columnCount) return;
+
+        columnCount = count;
+        RebuildRows();
+    }
+
+    private void RebuildRows()
+    {
+        Rows.Clear();
+
+        foreach (var day in Photos.GroupBy(p => p.Photo.DateTakenUtc.Date))
+        {
+            var tiles = day.ToList();
+
+            Rows.Add(new DayHeaderRow(day.Key, tiles));
+
+            foreach (var chunk in tiles.Chunk(columnCount))
+                Rows.Add(new PhotoTilesRow(chunk));
+        }
+    }
+
+    private void OnMonthSelected(MonthItem month)
+    {
+        var newest = Photos.FirstOrDefault(p =>
+            p.Photo.DateTakenUtc.Year == month.Year &&
+            p.Photo.DateTakenUtc.Month == month.Month);
+
+        if (newest == null) return;
+
+        var date = newest.Photo.DateTakenUtc.Date;
+
+        for (var i = 0; i < Rows.Count; i++)
+        {
+            var header = Rows[i] as DayHeaderRow;
+
+            if (header != null && header.Date == date)
+            {
+                ScrollToRowRequested?.Invoke(i);
+                return;
+            }
+        }
     }
 
     [RelayCommand]
