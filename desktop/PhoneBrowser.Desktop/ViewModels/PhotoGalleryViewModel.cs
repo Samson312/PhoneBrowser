@@ -25,11 +25,12 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     public DateNavigationViewModel DateNavigation { get; } = new();
 
-    public ObservableCollection<GalleryRow> Rows { get; } = new();
-
     public event Action<int>? ScrollToRowRequested;
 
     private int columnCount = 4;
+
+    [ObservableProperty]
+    private IReadOnlyList<GalleryRow> rows = [];
 
     [ObservableProperty]
     private UserMessage? errorMessage = null;
@@ -123,17 +124,19 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     private void RebuildRows()
     {
-        Rows.Clear();
+        var newRows = new List<GalleryRow>();
 
         foreach (var day in Photos.GroupBy(p => p.Photo.DateTakenUtc.Date))
         {
             var tiles = day.ToList();
 
-            Rows.Add(new DayHeaderRow(day.Key, tiles));
+            newRows.Add(new DayHeaderRow(day.Key, tiles));
 
             foreach (var chunk in tiles.Chunk(columnCount))
-                Rows.Add(new PhotoTilesRow(chunk));
+                newRows.Add(new PhotoTilesRow(chunk));
         }
+        
+        Rows = newRows;
     }
 
     private void OnMonthSelected(MonthItem month)
