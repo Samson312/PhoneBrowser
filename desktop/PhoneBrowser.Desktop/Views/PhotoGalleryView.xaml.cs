@@ -13,6 +13,8 @@ public partial class PhotoGalleryView : UserControl
 {
     private const double TileCellWidth = 258;
 
+    private int wheelDeltaAccumulator;
+
     public PhotoGalleryView()
     {
         InitializeComponent();
@@ -50,7 +52,16 @@ public partial class PhotoGalleryView : UserControl
         var scrollViewer = FindChild<ScrollViewer>(PhotosList);
         if (scrollViewer == null) return;
 
-        scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - Math.Sign(e.Delta));
+        wheelDeltaAccumulator += e.Delta;
+
+        var notches = wheelDeltaAccumulator / Mouse.MouseWheelDeltaForOneLine;
+
+        if (notches != 0)
+        {
+            wheelDeltaAccumulator -= notches * Mouse.MouseWheelDeltaForOneLine;
+            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - notches);
+        }
+
         e.Handled = true;
     }
 
