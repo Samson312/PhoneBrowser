@@ -20,8 +20,8 @@ public partial class PhotoGalleryViewModel : ViewModelBase
     public ObservableCollection<PhotoTileViewModel> Photos { get; } = new();
 
     public string ButtonText => SelectedCount > 0 
-        ? $"Prześlij {PolishPlural.Photos(SelectedCount)}" 
-        : "Wybierz zdjęcia";
+        ? $"Dalej - Wybrano {PolishPlural.Photos(SelectedCount)}" 
+        : "Wybierz zdjęcia - przycisk nieaktywny";
 
     public DateNavigationViewModel DateNavigation { get; } = new();
 

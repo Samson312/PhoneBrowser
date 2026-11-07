@@ -12,7 +12,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </UserControl.Resources>
 
-    <Grid Margin="20">
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
@@ -24,8 +24,10 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Wybierz zdjęcia" FontSize="25" FontWeight="SemiBold"
-                   HorizontalAlignment="Center" Margin="0,0,0,16" Grid.Row="0"/>
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center"  Margin="0,0,0,16" >
+            <TextBlock Text="Wybierz zdjęcia" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center" />
+            <TextBlock Text="Kliknij zdjęcia, żeby je zaznaczyć. Skorzystaj z listy lat i miesięcy, aby łatwo odnaleźć zdjęcia." FontSize="20"/>
+        </StackPanel>
 
         <controls:ErrorBanner Message="{Binding ErrorMessage}" Grid.Row="1"/>
 
@@ -47,6 +49,7 @@
             
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
+                    <Setter Property="Margin" Value="12,0" />
                     <Setter Property="Focusable" Value="False"/>
                     <Setter Property="FlowDirection" Value="LeftToRight" />
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -75,7 +78,7 @@
                             </i:Interaction.Triggers>
                             <Button Command="{Binding ToggleCommand}"
                                     BorderThickness="0" Background="Transparent" Padding="0">
-                                <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+                                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
                             </Button>
                         </Border>
                         <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="20"
@@ -96,10 +99,10 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
-                            <TextBlock Text="{Binding Date, StringFormat='dd MMMM yyyy'}"
-                               FontWeight="SemiBold" FontSize="15"/>
-                            <TextBlock Text="{Binding Tiles.Count, StringFormat=' — {0} zdjęć'}"
-                               FontSize="13" Foreground="Gray" Margin="6,0,0,0"
+                            <TextBlock Text="{Binding Date, StringFormat='dddd, d MMMM yyyy'}"
+                               FontWeight="SemiBold" FontSize="18"/>
+                            <TextBlock Text="{Binding CountText, StringFormat='- {0}'}"
+                               FontSize="16" Margin="6,0,0,0"
                                VerticalAlignment="Center"/>
                         </StackPanel>
 
@@ -123,45 +126,55 @@
             </ListBox.Resources>
         </ListBox>
 
-        <Grid x:Name="NavPanel" Grid.Row="2" Grid.Column="1" Width="260" Margin="16,0,0,0"
-      DataContext="{Binding DateNavigation}">
+        <Grid x:Name="NavPanel" Grid.RowSpan="3" Grid.Column="1" Width="260" Margin="16,0,0,0"
+                DataContext="{Binding DateNavigation}">
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  Visibility="{Binding IsYearLevel, Converter={StaticResource BoolToVis}}">
-                <ItemsControl ItemsSource="{Binding Years}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button MinHeight="52" Margin="0,0,0,8" HorizontalContentAlignment="Stretch"
-                            Command="{Binding DataContext.SelectYearCommand, ElementName=NavPanel}"
-                            CommandParameter="{Binding}">
-                                <StackPanel Margin="8,4">
-                                    <TextBlock FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center">
-                                        <TextBlock.Text>
-                                            <MultiBinding StringFormat="{}{0} - {1}">
-                                                <Binding Path="Year"/>
-                                                <Binding Path="CountText"/>
-                                            </MultiBinding>
-                                        </TextBlock.Text>
-                                    </TextBlock>
-                                </StackPanel>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <DockPanel Visibility="{Binding IsYearLevel, Converter={StaticResource BoolToVis}}">
 
+                <TextBlock DockPanel.Dock="Top" Text="Przejdź do daty" Margin="0,0,0,16" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Years}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button MinHeight="42" Margin="0,0,0,8" HorizontalContentAlignment="Stretch"
+                                        Command="{Binding DataContext.SelectYearCommand, ElementName=NavPanel}"
+                                        CommandParameter="{Binding}">
+                                    <StackPanel Margin="8,4">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0} - {1}">
+                                                    <Binding Path="Year"/>
+                                                    <Binding Path="CountText"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+            
             <DockPanel Visibility="{Binding IsMonthLevel, Converter={StaticResource BoolToVis}}">
-                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-                    <Button Content="← Wybór roku" MinHeight="52" Command="{Binding BackToYearsCommand}"/>
-                    <TextBlock Text="{Binding SelectedYear}" FontSize="25" FontWeight="SemiBold"
-                       HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                </StackPanel>
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,8" HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Button Grid.Row="0" Content="← Wybór roku" Height="40" Margin="0,0,0,8" Command="{Binding BackToYearsCommand}"/>
+                    <TextBlock Grid.Row="1" Text="{Binding SelectedYear, StringFormat='Rok {0}'}"
+                               FontSize="25" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Months}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button MinHeight="52" Margin="0,0,0,8" HorizontalContentAlignment="Stretch"
+                                <Button MinHeight="42" Margin="0,0,0,8" HorizontalContentAlignment="Stretch"
                                 Command="{Binding DataContext.SelectMonthCommand, ElementName=NavPanel}"
                                 CommandParameter="{Binding}">
                                     <StackPanel Margin="8,4">
@@ -182,15 +195,15 @@
             </DockPanel>
         </Grid>
 
-        <Grid Margin="0,16,0,0" Grid.Row="3">
+        <Grid Margin="0,16,0,0" Grid.Row="3" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand}"/>
-            <Button Grid.Column="2" Command="{Binding NextCommand}">
+            <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand}" Height="42" FontSize="20"/>
+            <Button Grid.Column="2" Command="{Binding NextCommand}" Height="42" FontSize="20">
                 <TextBlock Text="{Binding ButtonText}"/>
             </Button>
         </Grid>
