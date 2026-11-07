@@ -18,6 +18,8 @@ internal class HttpPhotoSourceService : IPhotoSourceService
     private readonly HttpClient httpClient;
     private readonly ILogger<HttpPhotoSourceService> logger;
 
+    private readonly SemaphoreSlim thumbnailGate = new(4);
+
     public HttpPhotoSourceService(
         PairedDevice pairedDevice,
         IHttpClientFactory httpClientFactory,
@@ -87,6 +89,7 @@ internal class HttpPhotoSourceService : IPhotoSourceService
 
         if (baseUrl == null) return null;
 
+        await thumbnailGate.WaitAsync();
         try 
         {
             using var request = new HttpRequestMessage(
@@ -115,6 +118,10 @@ internal class HttpPhotoSourceService : IPhotoSourceService
         {
             logger.LogDebug(ex, "Thumbnail fetch failed for photo {PhotoId}", photoId);
             return null;
+        }
+        finally
+        {
+            thumbnailGate.Release();
         }
     }
 
