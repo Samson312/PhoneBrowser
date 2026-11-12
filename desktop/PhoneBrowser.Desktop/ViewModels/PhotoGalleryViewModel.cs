@@ -21,7 +21,7 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     public string ButtonText => SelectedCount > 0 
         ? $"Dalej - Wybrano {PolishPlural.Photos(SelectedCount)}" 
-        : "Wybierz zdjęcia - przycisk nieaktywny";
+        : "Wybierz zdjęcia by przejść dalej";
 
     public DateNavigationViewModel DateNavigation { get; } = new();
 
@@ -37,6 +37,9 @@ public partial class PhotoGalleryViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool isEmpty = false;
+
+    [ObservableProperty]
+    private bool isLoading = true;
 
     private readonly CancellationTokenSource cts = new();
 
@@ -91,12 +94,19 @@ public partial class PhotoGalleryViewModel : ViewModelBase
             foreach (var item in photos.OrderByDescending(p => p.DateTakenUtc))
             {
                 var tile = new PhotoTileViewModel(item, photoSource);
-                tile.PropertyChanged += (_, e) =>
+                tile.PropertyChanged += (sender, e) =>
                 {
                     if (e.PropertyName == nameof(PhotoTileViewModel.IsSelected))
                     {
                         OnPropertyChanged(nameof(ButtonText));
                         NextCommand.NotifyCanExecuteChanged();
+
+                        if (sender is PhotoTileViewModel changed)
+                        {
+                            Rows.OfType<DayHeaderRow>()
+                                .FirstOrDefault(h => h.Date == changed.Photo.DateTakenUtc.Date)
+                                ?.Refresh();
+                        }
                     }
                 };
                 Photos.Add(tile);
@@ -111,6 +121,10 @@ public partial class PhotoGalleryViewModel : ViewModelBase
         {
             ErrorMessage = ErrorMessages.Gallery(PhotoSourceError.Unknown);
             logger.LogError(ex, "Unexpected error happened");
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 

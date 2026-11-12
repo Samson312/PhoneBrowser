@@ -2,14 +2,33 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
-             xmlns:converters="clr-namespace:PhoneBrowser.Desktop.Converters"
              xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls"
              xmlns:vm="clr-namespace:PhoneBrowser.Desktop.ViewModels">
 
     <UserControl.Resources>
-        <converters:SelectedToThicknessConverter x:Key="SelectedToThicknessConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        
+        <Style x:Key="NewerButton" TargetType="Button" BasedOn="{StaticResource CompactButton}">
+            <Setter Property="Content" Value="↑ Nowsze"/>
+            <Setter Property="Command" Value="{Binding NewerCommand}"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CanGoNewer}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="OlderButton" TargetType="Button" BasedOn="{StaticResource CompactButton}">
+            <Setter Property="Content" Value="↓ Starsze"/>
+            <Setter Property="Command" Value="{Binding OlderCommand}"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CanGoOlder}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -24,29 +43,36 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" HorizontalAlignment="Center"  Margin="0,0,0,16" >
-            <TextBlock Text="Wybierz zdjęcia" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center" />
-            <TextBlock Text="Kliknij zdjęcia, żeby je zaznaczyć. Skorzystaj z listy lat i miesięcy, aby łatwo odnaleźć zdjęcia." FontSize="20"/>
-        </StackPanel>
+        <controls:ScreenHeader Grid.Row="0" Grid.ColumnSpan="2"
+            Title="Wybierz zdjęcia"
+            Subtitle="Kliknij zdjęcia, żeby je zaznaczyć. Skorzystaj z listy lat i miesięcy, aby łatwo odnaleźć zdjęcia."/>
 
-        <controls:ErrorBanner Message="{Binding ErrorMessage}" Grid.Row="1"/>
+        <controls:ErrorBanner Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,16"
+                              Message="{Binding ErrorMessage}"/>
 
-        <StackPanel Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" Grid.Row="2">
-            <TextBlock Text="Brak zdjęć do wyświetlenia"/>
-            <TextBlock Text="Sprawdź, czy aplikacja na telefonie ma dostęp do zdjęć" />
+        <TextBlock Grid.Row="2" Text="Wczytuję zdjęcia…"
+                   Style="{StaticResource HeadingText}"
+                   VerticalAlignment="Center"
+                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+
+        <StackPanel Grid.Row="2" VerticalAlignment="Center"
+                    Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}">
+            <TextBlock Text="Brak zdjęć do wyświetlenia" Style="{StaticResource HeadingText}"/>
+            <TextBlock Text="Sprawdź, czy aplikacja na telefonie ma dostęp do zdjęć."
+                       Style="{StaticResource SecondaryText}"/>
         </StackPanel>
 
         <ListBox x:Name="PhotosList" Grid.Row="2"
-         ItemsSource="{Binding Rows}"
-         BorderThickness="0"
-         VirtualizingPanel.IsVirtualizing="True"
-         VirtualizingPanel.ScrollUnit="Item"
-         ScrollViewer.CanContentScroll="True"
-         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-         SizeChanged="OnPhotosListSizeChanged"
-         PreviewMouseWheel="OnPhotosListPreviewMouseWheel"
-         FlowDirection="RightToLeft">
-            
+                 ItemsSource="{Binding Rows}"
+                 BorderThickness="0" Background="Transparent"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.ScrollUnit="Item"
+                 ScrollViewer.CanContentScroll="True"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 SizeChanged="OnPhotosListSizeChanged"
+                 PreviewMouseWheel="OnPhotosListPreviewMouseWheel"
+                 FlowDirection="RightToLeft">
+
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="Margin" Value="12,0" />
@@ -67,26 +93,42 @@
             <ListBox.Resources>
                 <DataTemplate x:Key="PhotoTileTemplate">
                     <Grid>
-                        <Border Margin="4" CornerRadius="8"
-                                BorderThickness="{Binding IsSelected, Converter={StaticResource SelectedToThicknessConverter}}"
-                                BorderBrush="#378add"
-                                Height="250" Width="250">
+
+                        <Border Margin="4" CornerRadius="8" BorderThickness="4"
+                                Height="250" Width="250"
+                                Background="{DynamicResource PlaceholderBrush}">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="Loaded">
                                     <i:InvokeCommandAction Command="{Binding LoadThumbnailCommand}" />
                                 </i:EventTrigger>
                             </i:Interaction.Triggers>
-                            <Button Command="{Binding ToggleCommand}"
-                                    BorderThickness="0" Background="Transparent" Padding="0">
-                                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+
+                            <Button Style="{StaticResource PhotoTileButton}"
+                                    Command="{Binding ToggleCommand}"
+                                    AutomationProperties.Name="{Binding Photo.FileName}">
+                                <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
                             </Button>
                         </Border>
-                        <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="20"
+
+                        <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16"
                                 Width="35" Height="35" CornerRadius="7"
-                                Background="#155EEF" BorderBrush="White" BorderThickness="2"
-                                Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}">            
-                            <TextBlock Text="✓" Foreground="White" FontSize="20" FontWeight="Bold"
-                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                Background="{DynamicResource AccentBrush}"
+                                BorderBrush="{DynamicResource OnAccentBrush}" BorderThickness="2"
+                                Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="✓" Foreground="{DynamicResource OnAccentBrush}"
+                                       FontSize="20" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </Grid>
                 </DataTemplate>
@@ -98,24 +140,26 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="{Binding Date, StringFormat='dddd, d MMMM yyyy'}"
-                               FontWeight="SemiBold" FontSize="18"/>
-                            <TextBlock Text="{Binding CountText, StringFormat='- {0}'}"
-                               FontSize="16" Margin="6,0,0,0"
-                               VerticalAlignment="Center"/>
+                                       Style="{StaticResource SectionText}"
+                                       VerticalAlignment="Bottom" Margin="0"/>
+                            <TextBlock Text="{Binding CountText, StringFormat=' – {0}'}"
+                                       Style="{StaticResource SecondaryText}"
+                                       VerticalAlignment="Bottom" Margin="0,0,0,1"/>
                         </StackPanel>
 
-                        <Button Grid.Column="1" Content="Zaznacz dzień"
-                        Command="{Binding DataContext.ToggleDayCommand,
-                                  RelativeSource={RelativeSource AncestorType=ListBox}}"
-                        CommandParameter="{Binding Tiles}"/>
+                        <Button Grid.Column="1" Style="{StaticResource CompactButton}"
+                                Content="{Binding ToggleText}"
+                                Command="{Binding DataContext.ToggleDayCommand,
+                                          RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                CommandParameter="{Binding Tiles}"/>
                     </Grid>
                 </DataTemplate>
 
                 <DataTemplate DataType="{x:Type vm:PhotoTilesRow}">
                     <ItemsControl ItemsSource="{Binding Tiles}"
-                          ItemTemplate="{StaticResource PhotoTileTemplate}">
+                                  ItemTemplate="{StaticResource PhotoTileTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Horizontal"/>
@@ -126,86 +170,82 @@
             </ListBox.Resources>
         </ListBox>
 
-        <Grid x:Name="NavPanel" Grid.RowSpan="3" Grid.Column="1" Width="260" Margin="16,0,0,0"
-                DataContext="{Binding DateNavigation}">
+        <DockPanel x:Name="NavPanel" Grid.Row="2" Grid.Column="1" Width="240" Margin="16,0,0,0"
+           DataContext="{Binding DateNavigation}">
 
-            <DockPanel Visibility="{Binding IsYearLevel, Converter={StaticResource BoolToVis}}">
+            <TextBlock DockPanel.Dock="Top" Text="Przejdź do daty"
+               Style="{StaticResource SectionText}" TextAlignment="Center"/>
 
-                <TextBlock DockPanel.Dock="Top" Text="Przejdź do daty" Margin="0,0,0,16" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+            <Grid>
+                <!-- Year level -->
+                <DockPanel Visibility="{Binding IsYearLevel, Converter={StaticResource BoolToVis}}">
+                    <Button DockPanel.Dock="Top" Style="{StaticResource NewerButton}"/>
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Years}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button MinHeight="42" Margin="0,0,0,8" HorizontalContentAlignment="Stretch"
-                                        Command="{Binding DataContext.SelectYearCommand, ElementName=NavPanel}"
-                                        CommandParameter="{Binding}">
-                                    <StackPanel Margin="8,4">
-                                        <TextBlock FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center">
-                                            <TextBlock.Text>
-                                                <MultiBinding StringFormat="{}{0} - {1}">
-                                                    <Binding Path="Year"/>
-                                                    <Binding Path="CountText"/>
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                    </StackPanel>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </DockPanel>
-            
-            <DockPanel Visibility="{Binding IsMonthLevel, Converter={StaticResource BoolToVis}}">
-                <Grid DockPanel.Dock="Top" Margin="0,0,0,8" HorizontalAlignment="Center">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                    <!-- Auto scrollbar is only a safety net for very large font sizes -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding Years}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Style="{StaticResource CompactButton}" Margin="0,0,0,8"
+                                                Command="{Binding DataContext.SelectYearCommand, ElementName=NavPanel}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock>
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0} – {1}">
+                                                        <Binding Path="Year"/>
+                                                        <Binding Path="CountText"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Style="{StaticResource OlderButton}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
 
-                    <Button Grid.Row="0" Content="← Wybór roku" Height="40" Margin="0,0,0,8" Command="{Binding BackToYearsCommand}"/>
-                    <TextBlock Grid.Row="1" Text="{Binding SelectedYear, StringFormat='Rok {0}'}"
-                               FontSize="25" FontWeight="SemiBold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
+                <!-- Month level: one button both shows the year and goes back to the years -->
+                <DockPanel Visibility="{Binding IsMonthLevel, Converter={StaticResource BoolToVis}}">
+                    <Button DockPanel.Dock="Top" Style="{StaticResource CompactButton}" Margin="0,0,0,8"
+                    Content="{Binding SelectedYear}"
+                    ContentStringFormat="← {0}"
+                    ToolTip="Wróć do wyboru roku"
+                    Command="{Binding BackToYearsCommand}"/>
+                    <Button DockPanel.Dock="Top" Style="{StaticResource NewerButton}"/>
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Months}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button MinHeight="42" Margin="0,0,0,8" HorizontalContentAlignment="Stretch"
-                                Command="{Binding DataContext.SelectMonthCommand, ElementName=NavPanel}"
-                                CommandParameter="{Binding}">
-                                    <StackPanel Margin="8,4">
-                                        <TextBlock FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center">
-                                            <TextBlock.Text>
-                                                <MultiBinding StringFormat="{}{0} - {1}">
-                                                    <Binding Path="Name"/>
-                                                    <Binding Path="CountText"/>
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                    </StackPanel>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </DockPanel>
-        </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding Months}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Style="{StaticResource CompactButton}" Margin="0,0,0,8"
+                                                Command="{Binding DataContext.SelectMonthCommand, ElementName=NavPanel}"
+                                                CommandParameter="{Binding}">   
+                                            <TextBlock>
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0} – {1}">
+                                                        <Binding Path="Name"/>
+                                                        <Binding Path="CountText"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Style="{StaticResource OlderButton}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Grid>
+        </DockPanel>
 
-        <Grid Margin="0,16,0,0" Grid.Row="3" Grid.ColumnSpan="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
-
-            <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand}" Height="42" FontSize="20"/>
-            <Button Grid.Column="2" Command="{Binding NextCommand}" Height="42" FontSize="20">
-                <TextBlock Text="{Binding ButtonText}"/>
-            </Button>
-        </Grid>
+        <controls:NavigationButtons Grid.Row="3" Grid.ColumnSpan="2" Margin="0,16,0,0"
+            BackCommand="{Binding BackCommand}"
+            NextCommand="{Binding NextCommand}"
+            NextText="{Binding ButtonText}"/>
     </Grid>
 </UserControl>

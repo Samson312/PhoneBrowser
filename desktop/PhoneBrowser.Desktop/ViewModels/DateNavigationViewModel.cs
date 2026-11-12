@@ -30,13 +30,26 @@ public record MonthItem(int Year, int Month, int PhotoCount)
 
 public partial class DateNavigationViewModel : ObservableObject
 {
+    private const int PageSize = 6;
+
+    private IReadOnlyList<YearItem> allYears = [];
     private IReadOnlyList<MonthItem> allMonths = [];
+    private IReadOnlyList<MonthItem> selectedYearMonths = [];
+
+    private int page;
+
+    private int yearsPageBeforeMonths;
 
     public ObservableCollection<YearItem> Years { get; } = new();
     public ObservableCollection<MonthItem> Months { get; } = new();
 
     public bool IsYearLevel => Level == DateNavigationLevel.Years;
     public bool IsMonthLevel => Level == DateNavigationLevel.Months;
+
+    public bool CanGoNewer => page > 0;
+    public bool CanGoOlder => (page + 1) * PageSize < CurrentCount;
+
+    private int CurrentCount => IsYearLevel ? allYears.Count : selectedYearMonths.Count;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsYearLevel), nameof(IsMonthLevel))]
@@ -56,28 +69,71 @@ public partial class DateNavigationViewModel : ObservableObject
             .ThenByDescending(m => m.Month)
             .ToList();
 
-        Years.Clear();
+        allYears = allMonths
+            .GroupBy(m => m.Year)
+            .Select(g => new YearItem(g.Key, g.Sum(m => m.PhotoCount)))
+            .ToList();
 
-        foreach (var year in allMonths.GroupBy(m => m.Year))
-            Years.Add(new YearItem(year.Key, year.Sum(m => m.PhotoCount)));
-
+        page = 0;
         Level = DateNavigationLevel.Years;
+        ShowPage();
+    }
+
+    private void ShowPage()
+    {
+        if (IsYearLevel) Refill(Years, allYears);
+        else Refill(Months, selectedYearMonths);
+
+        OnPropertyChanged(nameof(CanGoNewer));
+        OnPropertyChanged(nameof(CanGoOlder));
+    }
+
+    private void Refill<T>(ObservableCollection<T> target, IReadOnlyList<T> source)
+    {
+        target.Clear();
+
+        foreach (var item in source.Skip(page * PageSize).Take(PageSize))
+            target.Add(item);
     }
 
     [RelayCommand]
     private void SelectYear(YearItem year)
     {
-        Months.Clear();
+        yearsPageBeforeMonths = page;
 
-        foreach (var month in allMonths.Where(m => m.Year == year.Year))
-            Months.Add(month);
-
+        selectedYearMonths = allMonths.Where(m => m.Year == year.Year).ToList();
         SelectedYear = year.Year;
+
+        page = 0;
         Level = DateNavigationLevel.Months;
+        ShowPage();
     }
 
     [RelayCommand]
-    private void BackToYears() => Level = DateNavigationLevel.Years;
+    private void BackToYears()
+    {
+        page = yearsPageBeforeMonths;
+        Level = DateNavigationLevel.Years;
+        ShowPage();
+    }
+
+    [RelayCommand]
+    private void Newer()
+    {
+        if (!CanGoNewer) return;
+
+        page--;
+        ShowPage();
+    }
+
+    [RelayCommand]
+    private void Older()
+    {
+        if (!CanGoOlder) return;
+
+        page++;
+        ShowPage();
+    }
 
     [RelayCommand]
     private void SelectMonth(MonthItem month) => MonthSelected?.Invoke(month);

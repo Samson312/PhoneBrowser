@@ -13,6 +13,8 @@ public partial class PhotoGalleryView : UserControl
 {
     private const double TileCellWidth = 258;
 
+    private const double ItemHorizontalMargin = 24;
+
     private int wheelDeltaAccumulator;
 
     public PhotoGalleryView()
@@ -35,7 +37,7 @@ public partial class PhotoGalleryView : UserControl
         var vm = DataContext as PhotoGalleryViewModel;
         if (vm == null) return;
 
-        var width = e.NewSize.Width - SystemParameters.VerticalScrollBarWidth;
+        var width = e.NewSize.Width - SystemParameters.VerticalScrollBarWidth - ItemHorizontalMargin;
         vm.SetColumnCount(Math.Max(1, (int)(width / TileCellWidth)));
     }
 

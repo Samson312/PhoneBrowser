@@ -16,6 +16,9 @@ public partial class PhotoTileViewModel : ObservableObject
     [ObservableProperty]
     private bool isSelected;
 
+    [ObservableProperty]
+    private bool isLoading = true;
+
     private readonly IPhotoSourceService photoSource;
 
     private bool thumbnailRequested = false;
