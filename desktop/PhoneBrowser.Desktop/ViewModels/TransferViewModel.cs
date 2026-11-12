@@ -26,6 +26,7 @@ public partial class TransferViewModel : ViewModelBase
 
     private readonly TransferDraft transferDraft;
     private readonly string directoryPath;
+    private readonly string displayPath;
     private readonly CancellationTokenSource cts = new();
     private readonly List<PhotoItem> remaining;
 
@@ -65,8 +66,8 @@ public partial class TransferViewModel : ViewModelBase
 
     public string Description => State switch
     {
-        TransferState.InProgress => $"Przesłano {TransferredCount} z {TotalCount}. Zapisujemy w folderze {directoryPath}",
-        TransferState.Done => $"Zapisano w folderze {directoryPath}",
+        TransferState.InProgress => $"Przesłano {TransferredCount} z {TotalCount}. Zapisujemy w folderze {displayPath}",
+        TransferState.Done => $"Zapisano w folderze {displayPath}",
         _ => ErrorMessage.Hint
     };
 
@@ -82,6 +83,9 @@ public partial class TransferViewModel : ViewModelBase
         this.logger = logger;
 
         directoryPath = transferDraft.TargetDirectory ?? "";
+        displayPath = string.IsNullOrEmpty(directoryPath)
+            ? directoryPath
+            : ShellNames.GetDisplayPath(Path.TrimEndingDirectorySeparator(directoryPath));
         remaining = transferDraft.Photos.ToList();
         TotalCount = remaining.Count;
 
