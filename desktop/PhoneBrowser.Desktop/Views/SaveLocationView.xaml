@@ -1,60 +1,46 @@
 ﻿<UserControl x:Class="PhoneBrowser.Desktop.Views.SaveLocationView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:PhoneBrowser.Desktop.Views"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Margin="20">
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1300">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="{Binding Title}"
-            FontSize="25" FontWeight="SemiBold"
-            HorizontalAlignment="Center"
-            Margin="0,0,0,16"
-            Grid.Row="0"/>
+        <controls:ScreenHeader Grid.Row="0"
+            Title="{Binding Title}"
+            Subtitle="Domyślnie zapiszemy je w folderze poniżej. Możesz to zmienić."/>
 
-        <TextBlock Text="Domyślnie zapiszemy je w folderze poniżej. Możesz to zmienić."
-            FontSize="17" FontWeight="SemiBold"
-            HorizontalAlignment="Center"
-            Margin="0,0,0,16"
-            Grid.Row="1"/>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="620" VerticalAlignment="Center">
 
+                <Border Style="{StaticResource DeviceCard}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="{Binding DirectoryName}"
+                                   Style="{StaticResource HeadingText}" Margin="0,0,0,4"/>
 
-        <StackPanel Grid.Row="2">
-            <TextBlock Text="{Binding DirectoryName}"
-                FontSize="25" FontWeight="SemiBold"
-                HorizontalAlignment="Center"
-                Margin="0,0,0,16"/>
+                        <TextBlock Text="{Binding DisplayDirectoryPath}"
+                                   Style="{StaticResource SecondaryText}"
+                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding DisplayDirectoryPath}"/>
+                    </StackPanel>
+                </Border>
 
-            <TextBlock Text="{Binding DisplayDirectoryPath}"
-                FontSize="16"
-                HorizontalAlignment="Center"
-                Margin="0,0,0,16"/>
+                <controls:ErrorBanner Margin="0,0,0,16" Message="{Binding ErrorMessage}"/>
 
-            <controls:ErrorBanner Margin="0,0,0,16" Message="{Binding ErrorMessage}"/>
-        </StackPanel>
-        
-        <Button Grid.Row="3" Content="Wybierz inny folder" Width="300" Command="{Binding ChangeDirectoryCommand}" />
+                <Button Content="Wybierz inny folder" Command="{Binding ChangeDirectoryCommand}"/>
+            </StackPanel>
+        </ScrollViewer>
 
-        <Grid Margin="0,16,0,0" Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
-
-            <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand}"/>
-            <Button Grid.Column="2" Content="Zapisz tutaj" Command="{Binding NextCommand}" />
-        </Grid>
-
+        <controls:NavigationButtons Grid.Row="2" Margin="0,16,0,0"
+            NextText="Zapisz tutaj"
+            BackCommand="{Binding BackCommand}"
+            NextCommand="{Binding NextCommand}"/>
     </Grid>
 </UserControl>
