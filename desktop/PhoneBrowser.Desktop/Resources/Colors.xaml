@@ -15,5 +15,11 @@
     <SolidColorBrush x:Key="DisabledSurfaceBrush" Color="#F3F3F3"/>
     <SolidColorBrush x:Key="DisabledBorderBrush" Color="#DDDDDD"/>
 
+    <SolidColorBrush x:Key="PrimaryDisabledBackgroundBrush" Color="#E3E9F0"/>
+    <SolidColorBrush x:Key="PrimaryDisabledBorderBrush" Color="#B8C4D0"/>
+    <SolidColorBrush x:Key="PrimaryDisabledTextBrush" Color="#4A5560"/>
+
+    <SolidColorBrush x:Key="PlaceholderBrush" Color="#E9E9E9"/>
+
     <SolidColorBrush x:Key="SuccessTextBrush" Color="#27804A"/>
 </ResourceDictionary>
