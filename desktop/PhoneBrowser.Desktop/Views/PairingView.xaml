@@ -1,40 +1,40 @@
 ﻿<UserControl x:Class="PhoneBrowser.Desktop.Views.PairingView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:PhoneBrowser.Desktop.Views"
              xmlns:vm="clr-namespace:PhoneBrowser.Desktop.ViewModels"
              xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d"
+             d:DesignHeight="650" d:DesignWidth="900">
 
     <UserControl.Resources>
         <DataTemplate x:Key="KnownDeviceTemplate">
-            <Border BorderBrush="Gray" BorderThickness="1"
-                        CornerRadius="6" Padding="10" Margin="0,0,0,8">
+            <Border Style="{StaticResource DeviceCard}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
-                        <TextBlock  Text="{Binding Device.DeviceName}"
-                            VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Device.DeviceName}" Style="{StaticResource CardNameText}"/>
                         <TextBlock>
                             <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="Sprawdzanie..." />
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource StatusText}">
+                                    <Setter Property="Text" Value="Sprawdzanie…"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Available}">
-                                            <Setter Property="Text" Value="Dostępny" />
+                                            <Setter Property="Text" Value="Dostępny"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource SuccessTextBrush}"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Unreachable}">
-                                            <Setter Property="Text" Value="Nie odpowiada" />
+                                            <Setter Property="Text" Value="Nie odpowiada"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Connected}">
-                                            <Setter Property="Text" Value="Połączono" />
+                                            <Setter Property="Text" Value="Połączono"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource SuccessTextBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -42,100 +42,102 @@
                         </TextBlock>
                     </StackPanel>
 
-                    <Button Grid.Column="1" CommandParameter="{Binding Device}">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Content" Value="Połącz" />
-                                <Setter Property="Command" Value="{Binding DataContext.ConnectCommand,
-                                    RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Connected}">
-                                        <Setter Property="Content" Value="Rozłącz" />
-                                        <Setter Property="Command" Value="{Binding DataContext.DisconnectCommand,
-                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                    <Button x:Name="ConnectButton" Grid.Column="1" Content="Połącz"
+                            Style="{StaticResource PrimaryButton}" MinWidth="130"
+                            Command="{Binding DataContext.ConnectCommand,
+                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding Device}"/>
+
+                    <Button x:Name="DisconnectButton" Grid.Column="1" Content="Rozłącz"
+                            MinWidth="130" Visibility="Collapsed"
+                            Command="{Binding DataContext.DisconnectCommand,
+                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding Device}"/>
                 </Grid>
             </Border>
+
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Connected}">
+                    <Setter TargetName="ConnectButton" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="DisconnectButton" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
+
         <DataTemplate x:Key="NewDeviceTemplate">
-            <Border BorderBrush="Gray" BorderThickness="1"
-                CornerRadius="6" Padding="10" Margin="0,0,0,8">
+            <Border Style="{StaticResource DeviceCard}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock  Text="{Binding DeviceName}"
-                    VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding DeviceName}" Style="{StaticResource CardNameText}"/>
 
                     <Button Grid.Column="1" Content="Paruj"
-                        Command="{Binding DataContext.PairCommand,
-                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                        CommandParameter="{Binding}"/>
+                            Style="{StaticResource PrimaryButton}" MinWidth="130"
+                            Command="{Binding DataContext.PairCommand,
+                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding}"/>
                 </Grid>
             </Border>
         </DataTemplate>
-        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </UserControl.Resources>
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Grid>
+        <Grid>
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsWaitingForPhone}" Value="True">
+                            <Setter Property="IsEnabled" Value="False"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
 
-        <TextBlock Text="Szukam telefonów w pobliżu…"
-                FontSize="25" FontWeight="SemiBold"
-                HorizontalAlignment="Center"
-                Margin="0,0,0,16"
-                Grid.Row="0"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <TextBlock Text="Otwórz aplikację na telefonie i upewnij się, że jest w tej samej sieci Wi-Fi."
-                FontSize="17" FontWeight="SemiBold"
-                HorizontalAlignment="Center"
-                Margin="0,0,0,16"
-                Grid.Row="1"/>
+            <controls:ScreenHeader Grid.Row="0"
+                Title="Szukam telefonów w pobliżu…"
+                Subtitle="Otwórz aplikację na telefonie i upewnij się, że jest w tej samej sieci Wi-Fi."/>
 
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-                <TextBlock Text="Ostatnio połączone" />
-                <ItemsControl ItemsSource="{Binding DeviceList.KnownDevices}"
-                    ItemTemplate="{StaticResource KnownDeviceTemplate}" />
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="620">
+                    <TextBlock Text="Ostatnio połączone" Style="{StaticResource SectionText}"/>
+                    <ItemsControl ItemsSource="{Binding DeviceList.KnownDevices}"
+                                  ItemTemplate="{StaticResource KnownDeviceTemplate}"/>
 
-                <TextBlock Text="Nowe urządzenia" />
-                <ItemsControl ItemsSource="{Binding DeviceList.NewDevices}"
-                    ItemTemplate="{StaticResource NewDeviceTemplate}" />
-            </StackPanel>
-        </ScrollViewer>
+                    <TextBlock Text="Nowe urządzenia" Style="{StaticResource SectionText}" Margin="0,8,0,8"/>
+                    <ItemsControl ItemsSource="{Binding DeviceList.NewDevices}"
+                                  ItemTemplate="{StaticResource NewDeviceTemplate}"/>
+                </StackPanel>
+            </ScrollViewer>
 
-        <controls:ErrorBanner Grid.Row="3" Margin="0,0,0,16" Message="{Binding ErrorMessage}"/>
+            <controls:ErrorBanner Grid.Row="2" Margin="0,16,0,0" Message="{Binding ErrorMessage}"/>
 
-        <Grid Margin="0,16,0,0" Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
-
-            <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand}"/>
-            <Button Grid.Column="2" Content="Dalej" Command="{Binding NextCommand}" />
+            <controls:NavigationButtons Grid.Row="3" Margin="0,16,0,0"
+                BackCommand="{Binding BackCommand}"
+                NextCommand="{Binding NextCommand}"/>
         </Grid>
 
-        <Grid Grid.RowSpan="5" Background="White"
+        <Grid Background="{DynamicResource SurfaceBrush}"
               Visibility="{Binding IsWaitingForPhone, Converter={StaticResource BoolToVis}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="Potwierdź połączenie na telefonie" HorizontalAlignment="Center" FontSize="24"/>
-                <TextBlock Text="{Binding WaitingDeviceName, StringFormat='Czekamy na odpowiedź z urządzenia {0}.'}" HorizontalAlignment="Center" Margin="0,0,0,16"/>
-                <TextBlock Text="Jeśli ekran telefonu jest wygaszony, odblokuj go i otwórz aplikację PhoneBrowser" Margin="0,0,0,16"/>
-                <Button Content="Anuluj" Command="{Binding CancelPairingCommand}" />
+            <StackPanel MaxWidth="560" VerticalAlignment="Center">
+                <TextBlock Text="Potwierdź połączenie na telefonie" Style="{StaticResource TitleText}"/>
+                <TextBlock Text="{Binding WaitingDeviceName, StringFormat='Czekamy na odpowiedź z urządzenia {0}.'}"
+                           Style="{StaticResource HeadingText}"/>
+                <TextBlock Text="Jeśli ekran telefonu jest wygaszony, odblokuj go i otwórz aplikację PhoneBrowser."
+                           Style="{StaticResource LeadText}"/>
+                <Button Content="Anuluj" MinWidth="300" HorizontalAlignment="Center"
+                        Command="{Binding CancelPairingCommand}"/>
             </StackPanel>
         </Grid>
     </Grid>
