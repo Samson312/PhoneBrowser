@@ -1,0 +1,17 @@
+﻿<UserControl x:Class="PhoneBrowser.Desktop.Views.Controls.NavigationButtons"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="root">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="0" Content="Wstecz" Command="{Binding BackCommand, ElementName=root}"/>
+        <Button Grid.Column="2" Style="{StaticResource PrimaryButton}"
+                Content="{Binding NextText, ElementName=root}"
+                Command="{Binding NextCommand, ElementName=root}"/>
+    </Grid>
+</UserControl>

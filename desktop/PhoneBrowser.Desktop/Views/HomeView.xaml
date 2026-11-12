@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:PhoneBrowser.Desktop.Views"
              xmlns:models="clr-namespace:PhoneBrowser.Desktop.Models"
              xmlns:converters="clr-namespace:PhoneBrowser.Desktop.Converters"
+             xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -13,20 +14,16 @@
         <converters:EnumToBoolConverter x:Key="EnumToBool"/>
     </UserControl.Resources>
 
-    <Grid Margin="20">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0">
-            <TextBlock Text="Jak chcesz połączyć telefon z komputerem?"
-                       Style="{StaticResource TitleText}"
-                       Margin="0,0,0,8"/>
-            <TextBlock Text="Wybierz sposób połączenia, aby przesłać zdjęcia."
-                       Style="{StaticResource LeadText}"/>
-        </StackPanel>
+        <controls:ScreenHeader 
+            Title="Jak chcesz połączyć telefon z komputerem?"
+            Subtitle="Wybierz sposób połączenia, aby przesłać zdjęcia."/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel MaxWidth="620" VerticalAlignment="Center">
@@ -63,6 +60,7 @@
 
         <Button Grid.Row="2" Content="Dalej"
                 Style="{StaticResource PrimaryButton}"
+                MinWidth="300"
                 Command="{Binding NextCommand}"
                 HorizontalAlignment="Center"
                 Margin="0,16,0,0"/>
