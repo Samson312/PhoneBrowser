@@ -1,5 +1,6 @@
 package com.phonebrowser.app.ui.permissions
 
+import android.os.Build
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.phonebrowser.app.ui.components.PrimaryButton
+import com.phonebrowser.app.ui.components.ScreenLayout
 import com.phonebrowser.app.viewmodels.PhotoPermissionViewModel
 
 @Composable
@@ -44,53 +48,49 @@ fun PhotoPermissionScreen(
         if(viewModel.isGranted) onGranted()
     }
 
+    val permissionDescription = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+            "Po kliknięciu „Zezwól na dostęp do zdjęć” wybierz „Zezwól na wszystkie”, aby umożliwić przesyłanie zdjęć."
+        }
+        else -> {
+            "Po kliknięciu „Zezwól na dostęp do zdjęć” wybierz „Zezwól”, aby umożliwić przesyłanie zdjęć."
+        }
+    }
+
     val denied = viewModel.isDenied
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
-    ){
-        Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ){
-            Text(
-                text = if (denied) "Bez tego uprawnienia aplikacja nie zadziała"
-                        else "Potrzebujemy dostępu do zdjęć",
-                fontSize = 28.sp,
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = if (denied) "Naciśnij „Otwórz ustawienia”, wybierz „Uprawnienia”, potem „Zdjęcia” i zezwól na dostęp."
-                        else "Potrzebujemy uprawnień do pamięci, by móc przesyłać zdjęcia na komputer. Po kliknięciu „Nadaj uprawnienia” zobaczysz okienko z pytaniem — wybierz „Zezwól”.",
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                if (denied) {
-                    context.startActivity(
-                        Intent(
-                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            Uri.fromParts("package", context.packageName, null)
-                        )
-                    )
-                } else {
-                    launcher.launch(viewModel.permission)
-                }
-            }
-        ){
-            Text(
+    ScreenLayout(
+        bottomBar = {
+            PrimaryButton(
                 text = if (denied) "Otwórz ustawienia"
-                        else "Nadaj uprawnienia",
-                fontSize = 28.sp
+                else "Zezwól na dostęp do zdjęć",
+                onClick = {
+                    if (denied) {
+                        context.startActivity(
+                            Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", context.packageName, null)
+                            )
+                        )
+                    } else {
+                        launcher.launch(viewModel.permission)
+                    }
+                }
             )
         }
+    ) {
+        Text(
+            text = if (denied) "Aby przesyłać zdjęcia na komputer, musisz zezwolić na dostęp do zdjęć."
+            else "Zezwól na dostęp do zdjęć",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = if (denied) "Naciśnij „Otwórz ustawienia”, wybierz „Uprawnienia”, potem „Zdjęcia” i zezwól na dostęp."
+            else permissionDescription,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
     }
 }

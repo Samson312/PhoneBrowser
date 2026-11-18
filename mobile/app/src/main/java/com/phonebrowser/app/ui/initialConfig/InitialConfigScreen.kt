@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -16,65 +18,59 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.phonebrowser.app.ui.components.PrimaryButton
+import com.phonebrowser.app.ui.components.ScreenLayout
 import com.phonebrowser.app.viewmodels.InitialConfigViewModel
+
 
 @Composable
 fun InitialConfigScreen(
     onSaved: () -> Unit,
     viewModel: InitialConfigViewModel = hiltViewModel()
 ){
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(Modifier.height(64.dp))
-        Text(
-            text = "Skonfigurujmy aplikację",
-            fontSize = 28.sp
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = "To można zmienić później w ustawieniach.",
-            textAlign = TextAlign.Center,
-            fontSize = 18.sp
-        )
-
-        Column(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            verticalArrangement = Arrangement.Center
-        ) {
+    ScreenLayout(
+        topBar = {
             Text(
-                text = "Nazwa tego telefonu",
-                fontSize = 24.sp
+                text = "Witaj! Nazwijmy ten telefon",
+                style = MaterialTheme.typography.headlineLarge,
+                textAlign = TextAlign.Center
             )
-            Spacer(Modifier.height(6.dp))
-            OutlinedTextField(
-                value = viewModel.deviceName,
-                onValueChange = viewModel::onDeviceNameChange,
-                isError = viewModel.errorMessage != null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            viewModel.errorMessage?.let { error ->
-                Spacer(Modifier.height(4.dp))
-                Text(error, color = MaterialTheme.colorScheme.error)
-            }
-        }
-
-        Button(
-            onClick = { viewModel.save(onSaved) }) {
+            Spacer(Modifier.height(8.dp))
             Text(
+                text = "Nazwa ta służy do rozpoznania tego telefonu na komputerze. Możesz ją zmienić później.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+        },
+        bottomBar = {
+            PrimaryButton(
                 text = "Zacznij korzystać",
-                fontSize = 28.sp
+                onClick = { viewModel.save(onSaved) }
             )
         }
-
+    ) {
+        Text(
+            text = "Nazwa tego telefonu",
+            style = MaterialTheme.typography.titleLarge
+        )
+        OutlinedTextField(
+            value = viewModel.deviceName,
+            onValueChange = viewModel::onDeviceNameChange,
+            isError = viewModel.errorMessage != null,
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyLarge,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions( onDone = { viewModel.save(onSaved)}),
+            modifier = Modifier.fillMaxWidth()
+        )
+        viewModel.errorMessage?.let { error ->
+            Spacer(Modifier.height(4.dp))
+            Text(error, color = MaterialTheme.colorScheme.error)
+        }
     }
 }

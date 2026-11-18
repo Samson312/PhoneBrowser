@@ -1,19 +1,17 @@
 package com.phonebrowser.app.ui.pairing
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.phonebrowser.app.ui.components.ScreenLayout
+import com.phonebrowser.app.ui.components.PrimaryButton
+import com.phonebrowser.app.ui.components.SecondaryButton
 import com.phonebrowser.app.viewmodels.PairingViewModel
 
 @Composable
@@ -23,41 +21,38 @@ fun PairingScreen(
 ) {
         val request = viewModel.pairingRequest ?: return
 
-        Column(
-                modifier = Modifier.fillMaxSize().padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+        ScreenLayout(
+                bottomBar = {
+                        PrimaryButton(
+                                text = "Akceptuj",
+                                onClick = {
+                                        viewModel.acceptPairing()
+                                        onHandled()
+                                }
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        SecondaryButton(
+                                text = "Odrzuć",
+                                onClick = {
+                                        viewModel.rejectPairing()
+                                        onHandled()
+                                }
+                        )
+                }
         ) {
-                Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                ) {
-                        Text(request.requesterName)
-                        Spacer(Modifier.height(8.dp))
-                        Text("chce się połączyć z tym telefonem, żeby przesyłać zdjęcia.")
-                        Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                ) {
-                        Button(
-                                onClick = {
-                                viewModel.acceptPairing()
-                                onHandled()
-                        }) { Text("Akceptuj") }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Button(
-                                onClick = {
-                                viewModel.rejectPairing()
-                                onHandled()
-                        }) { Text("Odrzuć") }
-                }
+                Text(
+                        text= request.requesterName,
+                        style = MaterialTheme.typography.headlineLarge,
+                        textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                        text= "chce się połączyć z tym telefonem, żeby przesyłać zdjęcia.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
+                )
         }
 }
+
+
 
