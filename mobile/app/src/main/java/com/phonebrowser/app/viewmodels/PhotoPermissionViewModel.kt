@@ -4,8 +4,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.phonebrowser.app.services.permissions.PhotoAccess
 import com.phonebrowser.app.services.permissions.PhotoPermissionChecker
+import com.phonebrowser.app.services.permissions.PhotoPermissionState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import kotlinx.io.IOException
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -14,22 +19,26 @@ import javax.inject.Inject
 class PhotoPermissionViewModel @Inject constructor(
     private val checker: PhotoPermissionChecker
 ) : ViewModel() {
-    val permission: String = checker.permission
+    val permissions: Array<String> = checker.permissions
 
-    var isGranted by mutableStateOf(checker.isGranted())
+    var state by mutableStateOf<PhotoPermissionState?>(null)
         private set
 
     var isDenied by mutableStateOf(false)
         private set
 
-    fun refresh(){
-        isGranted = checker.isGranted()
+    private var requested = false
+
+    fun refresh() {
+        viewModelScope.launch {
+            val newState = checker.check()
+            state = newState
+            isDenied = requested && newState.access == PhotoAccess.DENIED
+        }
     }
 
-    fun onPermissionResult(granted: Boolean){
-        Timber.i("Photo permission result: granted=%s", granted)
-        isGranted = granted
-
-        if(!granted) isDenied = true
+    fun onPermissionResult() {
+        requested = true
+        refresh()
     }
 }

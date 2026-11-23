@@ -107,4 +107,14 @@ class PhotoRepository @Inject constructor(
             null
         }
     }
+
+    fun countPhotos(): Int = try {
+        context.contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.Images.Media._ID), null, null, null
+        )?.use { it.count } ?: 0
+    } catch (e: SecurityException) {
+        Timber.w(e, "Missing permission to count photos")
+        0
+    }
 }

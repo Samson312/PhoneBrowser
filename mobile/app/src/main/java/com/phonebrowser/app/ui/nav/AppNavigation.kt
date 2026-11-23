@@ -54,7 +54,7 @@ fun AppNavigation(
     NavHost(
         navController = navController,
         startDestination = when {
-            !appViewModel.hasPhotoPermission -> Route.PhotoPermission.route
+            appViewModel.needsPhotoPermissionScreen -> Route.PhotoPermission.route
             hasProfile == true -> Route.Home.route
             else -> Route.InitialConfig.route
         },
