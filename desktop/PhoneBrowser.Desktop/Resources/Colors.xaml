@@ -22,4 +22,8 @@
     <SolidColorBrush x:Key="PlaceholderBrush" Color="#E9E9E9"/>
 
     <SolidColorBrush x:Key="SuccessTextBrush" Color="#27804A"/>
+
+    <SolidColorBrush x:Key="ErrorTextBrush" Color="#791F1F"/>
+    <SolidColorBrush x:Key="ErrorBorderBrush" Color="#E24B4A"/>
+    <SolidColorBrush x:Key="ErrorSurfaceBrush" Color="#FCEBEB"/>
 </ResourceDictionary>

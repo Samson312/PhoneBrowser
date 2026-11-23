@@ -6,7 +6,7 @@ public static partial class ErrorMessages
     {
         PairingError.Unreachable => new(
             "Telefon nie odpowiada",
-            "Sprawdź, czy telefon i komputer są w tej samej sieci Wi-Fi, i spróbuj ponownie."),
+            "Uruchom aplikację na telefonie i połącz go z tą samą siecią Wi-Fi co komputer."),
 
         PairingError.Busy => new(
             "Do telefonu jest podłączone inne urządzenie",

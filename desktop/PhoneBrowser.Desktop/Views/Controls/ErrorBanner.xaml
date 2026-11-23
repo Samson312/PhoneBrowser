@@ -2,7 +2,18 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Name="root">
-    <Border Padding="14,12" BorderBrush="#E24B4A" BorderThickness="1">
+
+    <UserControl.Style>
+        <Style TargetType="UserControl">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Message, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Style>
+    
+    <Border Padding="12,8" BorderBrush="{StaticResource ErrorBorderBrush}" BorderThickness="2">
         <Border.Style>
             <Style TargetType="Border">
                 <Setter Property="Visibility" Value="Visible"/>
@@ -15,15 +26,16 @@
         </Border.Style>
 
         <StackPanel Orientation="Horizontal">
-            <TextBlock Text="⚠" FontSize="22" Foreground="#791F1F"
-                       VerticalAlignment="Top" Margin="0,0,10,0"/>
+            <TextBlock Text="⚠" FontSize="{StaticResource FontSizeTitle}" Foreground="{StaticResource ErrorTextBrush}"
+                       VerticalAlignment="Center" Margin="0,0,4,0"/>
             <StackPanel>
                 <TextBlock Text="{Binding Message.Title, ElementName=root}"
-                           FontSize="17" FontWeight="SemiBold" Foreground="#791F1F"
-                           TextWrapping="Wrap"/>
+                           Foreground="{StaticResource ErrorTextBrush}"
+                           Style="{StaticResource SectionText}"/>
                 <TextBlock Text="{Binding Message.Hint, ElementName=root}"
-                           FontSize="16" Foreground="#791F1F"
-                           TextWrapping="Wrap" Margin="0,2,0,0"/>
+                           Foreground="{StaticResource ErrorTextBrush}"
+                           Style="{StaticResource SecondaryText}"
+                           Margin="0,2,0,0"/>
             </StackPanel>
         </StackPanel>
     </Border>
