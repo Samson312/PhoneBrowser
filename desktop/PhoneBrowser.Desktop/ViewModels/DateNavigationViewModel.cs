@@ -11,7 +11,7 @@ public enum DateNavigationLevel { Years, Months }
 
 public record YearItem(int Year, int PhotoCount)
 {
-    public string CountText => PhotoCount == 1 ? "1 zdjęcie" : PolishPlural.Photos(PhotoCount);
+    public string CountText => PolishPlural.Photos(PhotoCount);
 }
 
 public record MonthItem(int Year, int Month, int PhotoCount)
@@ -25,7 +25,7 @@ public record MonthItem(int Year, int Month, int PhotoCount)
         }
     }
 
-    public string CountText => PhotoCount == 1 ? "1 zdjęcie" : PolishPlural.Photos(PhotoCount);
+    public string CountText => PolishPlural.Photos(PhotoCount);
 }
 
 public partial class DateNavigationViewModel : ObservableObject
@@ -107,6 +107,9 @@ public partial class DateNavigationViewModel : ObservableObject
         page = 0;
         Level = DateNavigationLevel.Months;
         ShowPage();
+
+        if (selectedYearMonths.Count > 0)
+            MonthSelected?.Invoke(selectedYearMonths[0]);
     }
 
     [RelayCommand]
