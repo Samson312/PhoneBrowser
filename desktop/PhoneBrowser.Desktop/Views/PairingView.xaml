@@ -43,10 +43,22 @@
                     </StackPanel>
 
                     <Button x:Name="ConnectButton" Grid.Column="1" Content="Połącz"
-                            Style="{StaticResource PrimaryButton}" MinWidth="130"
+                            MinWidth="130"
                             Command="{Binding DataContext.ConnectCommand,
                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                            CommandParameter="{Binding Device}"/>
+                            CommandParameter="{Binding Device}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                <Setter Property="IsEnabled" Value="False" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static vm:KnownDeviceStatus.Available}">
+                                        <Setter Property="IsEnabled" Value="True"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        
+                    </Button>
 
                     <Button x:Name="DisconnectButton" Grid.Column="1" Content="Rozłącz"
                             MinWidth="130" Visibility="Collapsed"
@@ -83,6 +95,14 @@
             </Border>
         </DataTemplate>
 
+        <Style x:Key="HideWhenEmpty" TargetType="StackPanel">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </UserControl.Resources>
 
@@ -111,21 +131,45 @@
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="620">
-                    <TextBlock Text="Ostatnio połączone" Style="{StaticResource SectionText}"/>
-                    <ItemsControl ItemsSource="{Binding DeviceList.KnownDevices}"
-                                  ItemTemplate="{StaticResource KnownDeviceTemplate}"/>
+                    <controls:ErrorBanner Margin="0,16,0,0" Message="{Binding ErrorMessage}"/>
+                    <StackPanel Style="{StaticResource HideWhenEmpty}"
+                Tag="{Binding DeviceList.KnownDevices.Count}">
+                        <TextBlock Text="Ostatnio połączone" Style="{StaticResource SectionText}"/>
+                        <ItemsControl ItemsSource="{Binding DeviceList.KnownDevices}"
+                      ItemTemplate="{StaticResource KnownDeviceTemplate}"/>
+                    </StackPanel>
 
-                    <TextBlock Text="Nowe urządzenia" Style="{StaticResource SectionText}" Margin="0,8,0,8"/>
-                    <ItemsControl ItemsSource="{Binding DeviceList.NewDevices}"
-                                  ItemTemplate="{StaticResource NewDeviceTemplate}"/>
+                    <StackPanel Style="{StaticResource HideWhenEmpty}"
+                Tag="{Binding DeviceList.NewDevices.Count}"
+                Margin="0,8,0,0">
+                        <TextBlock Text="Nowe urządzenia" Style="{StaticResource SectionText}" Margin="0,0,0,8"/>
+                        <ItemsControl ItemsSource="{Binding DeviceList.NewDevices}"
+                      ItemTemplate="{StaticResource NewDeviceTemplate}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Na razie nie znaleziono żadnego telefonu. Sprawdzam sieć…">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource HeadingText}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DeviceList.KnownDevices.Count}" Value="0"/>
+                                            <Condition Binding="{Binding DeviceList.NewDevices.Count}" Value="0"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </StackPanel>
             </ScrollViewer>
 
-            <controls:ErrorBanner Grid.Row="2" Margin="0,16,0,0" Message="{Binding ErrorMessage}"/>
-
             <controls:NavigationButtons Grid.Row="3" Margin="0,16,0,0"
                 BackCommand="{Binding BackCommand}"
-                NextCommand="{Binding NextCommand}"/>
+                NextCommand="{Binding NextCommand}"
+                NextText="{Binding NextButtonText}"/>
         </Grid>
 
         <Grid Background="{DynamicResource SurfaceBrush}"

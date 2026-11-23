@@ -26,6 +26,10 @@ public partial class PairingViewModel : ViewModelBase
     public DeviceListViewModel DeviceList { get; }
     public bool IsWaitingForPhone => WaitingDeviceName != null;
 
+    public string NextButtonText => pairedDevice.IsPaired
+        ? "Dalej"
+        : "Połącz się z telefonem, aby przejść dalej";
+
     private readonly CancellationTokenSource cts = new();
     private CancellationTokenSource? pairingCts;
     private readonly DispatcherTimer availabilityTimer = new() { Interval =  TimeSpan.FromSeconds(1) };
@@ -83,6 +87,12 @@ public partial class PairingViewModel : ViewModelBase
     private bool CanOperate => !pairedDevice.IsPaired && !IsBusy;
 
     private bool CanDisconnect => pairedDevice.IsPaired && !IsBusy;
+
+    private void RefreshNextState()
+    {
+        OnPropertyChanged(nameof(NextButtonText));
+        NextCommand.NotifyCanExecuteChanged();
+    }
 
     private async Task StartDiscoveryAsync()
     {
@@ -179,7 +189,7 @@ public partial class PairingViewModel : ViewModelBase
         {
             UpdateLastConnected(device);
             DeviceList.SetConnected(device);
-            NextCommand.NotifyCanExecuteChanged();
+            RefreshNextState();
         }
         else
         {
@@ -255,7 +265,7 @@ public partial class PairingViewModel : ViewModelBase
             IsBusy = true;
             await connectionService.DisconnectAsync(device, cts.Token);
             DeviceList.SetDisconnected(device);
-            NextCommand.NotifyCanExecuteChanged();
+            RefreshNextState();
         }
         finally
         {
