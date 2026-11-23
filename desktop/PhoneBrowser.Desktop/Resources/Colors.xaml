@@ -19,6 +19,8 @@
     <SolidColorBrush x:Key="PrimaryDisabledBorderBrush" Color="#B8C4D0"/>
     <SolidColorBrush x:Key="PrimaryDisabledTextBrush" Color="#4A5560"/>
 
+    <SolidColorBrush x:Key="DayHeaderBackgroundBrush" Color="#E3EEFF"/>
+
     <SolidColorBrush x:Key="PlaceholderBrush" Color="#E9E9E9"/>
 
     <SolidColorBrush x:Key="SuccessTextBrush" Color="#27804A"/>

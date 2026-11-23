@@ -91,6 +91,9 @@
             </ListBox.ItemContainerStyle>
 
             <ListBox.Resources>
+
+                <Style TargetType="ScrollBar" BasedOn="{StaticResource GalleryScrollBar}"/>
+
                 <DataTemplate x:Key="PhotoTileTemplate">
                     <Grid>
                         <Button Style="{StaticResource PhotoTileButton}"
@@ -151,27 +154,25 @@
                 </DataTemplate>
 
                 <DataTemplate DataType="{x:Type vm:DayHeaderRow}">
-                    <Grid Margin="0,12,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                    <Border Margin="0,10,0,10" Padding="4,2" CornerRadius="4"
+                                Background="{DynamicResource DayHeaderBackgroundBrush}"
+                                BorderBrush="{DynamicResource AccentBrush}" BorderThickness="6,0,0,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
+                            <StackPanel  Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Date, StringFormat='dddd, d MMMM yyyy'}"
+                                            Style="{StaticResource HeadingText}"
+                                            VerticalAlignment="Bottom" Margin="0"/>
+                                <TextBlock Text="{Binding CountText, StringFormat=' – {0}'}"
+                                            Style="{StaticResource SecondaryText}"
+                                            VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                            </StackPanel>
 
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Date, StringFormat='dddd, d MMMM yyyy'}"
-                                       Style="{StaticResource SectionText}"
-                                       VerticalAlignment="Bottom" Margin="0"/>
-                            <TextBlock Text="{Binding CountText, StringFormat=' – {0}'}"
-                                       Style="{StaticResource SecondaryText}"
-                                       VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                            <Button Margin="20,0,0,0" Style="{StaticResource CompactButton}"
+                                    Content="{Binding ToggleText}"
+                                    Command="{Binding DataContext.ToggleDayCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    CommandParameter="{Binding Tiles}"/>
                         </StackPanel>
-
-                        <Button Grid.Column="1" Style="{StaticResource CompactButton}"
-                                Content="{Binding ToggleText}"
-                                Command="{Binding DataContext.ToggleDayCommand,
-                                          RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                CommandParameter="{Binding Tiles}"/>
-                    </Grid>
+                    </Border>
                 </DataTemplate>
 
                 <DataTemplate DataType="{x:Type vm:PhotoTilesRow}">
@@ -187,7 +188,7 @@
             </ListBox.Resources>
         </ListBox>
 
-        <DockPanel x:Name="NavPanel" Grid.Row="2" Grid.Column="1" Width="240" Margin="16,0,0,0"
+        <DockPanel x:Name="NavPanel" Grid.Row="2" Grid.Column="1" Width="240"
            DataContext="{Binding DateNavigation}">
 
             <TextBlock DockPanel.Dock="Top" Text="Przejdź do daty"
