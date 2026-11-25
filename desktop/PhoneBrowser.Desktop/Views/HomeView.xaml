@@ -26,7 +26,7 @@
             Subtitle="Wybierz sposób połączenia, aby przesłać zdjęcia."/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel MaxWidth="620" VerticalAlignment="Center">
+            <StackPanel MaxWidth="{DynamicResource ContentMaxWidth}" VerticalAlignment="Center">
 
                 <RadioButton Style="{StaticResource ChoiceCard}"
                      GroupName="ConnectionMode"

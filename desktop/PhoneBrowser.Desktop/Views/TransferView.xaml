@@ -26,7 +26,7 @@
                      Value="{Binding TransferredCount, Mode=OneWay}"
                      Visibility="{Binding IsInProgress, Converter={StaticResource BoolToVis}}"/>
 
-        <StackPanel Grid.Row="2" MaxWidth="620" Margin="0,16,0,0">
+        <StackPanel Grid.Row="2" MaxWidth="{DynamicResource ContentMaxWidth}" Margin="0,16,0,0">
             <Button Content="Anuluj" Command="{Binding BackCommand}"
                     Visibility="{Binding IsInProgress, Converter={StaticResource BoolToVis}}"/>
             <!-- TODO: Cancel should stay at the same page -->

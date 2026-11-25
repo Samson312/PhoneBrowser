@@ -1,7 +1,9 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
-    
+
+    <sys:Double x:Key="ContentMaxWidth">620</sys:Double>
+
     <!-- Font sizes -->
     <sys:Double x:Key="FontSizeTitle">25</sys:Double>
     <sys:Double x:Key="FontSizeHeading">20</sys:Double>

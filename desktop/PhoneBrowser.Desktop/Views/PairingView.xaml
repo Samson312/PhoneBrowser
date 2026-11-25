@@ -130,7 +130,7 @@
                 Subtitle="Otwórz aplikację na telefonie i upewnij się, że jest w tej samej sieci Wi-Fi."/>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <StackPanel MaxWidth="620">
+                <StackPanel MaxWidth="{DynamicResource ContentMaxWidth}">
                     <controls:ErrorBanner Margin="0,16,0,0" Message="{Binding ErrorMessage}"/>
                     <StackPanel Style="{StaticResource HideWhenEmpty}"
                 Tag="{Binding DeviceList.KnownDevices.Count}">

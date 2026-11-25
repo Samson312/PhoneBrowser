@@ -1,0 +1,106 @@
+﻿<UserControl x:Class="PhoneBrowser.Desktop.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:models="clr-namespace:PhoneBrowser.Desktop.Models"
+             xmlns:converters="clr-namespace:PhoneBrowser.Desktop.Converters"
+             xmlns:controls="clr-namespace:PhoneBrowser.Desktop.Views.Controls"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1300">
+
+    <UserControl.Resources>
+        <converters:EnumToBoolConverter x:Key="EnumToBool"/>
+
+        <Style x:Key="ThemeCard" TargetType="RadioButton" BasedOn="{StaticResource ChoiceCard}">
+            <Setter Property="GroupName" Value="ColorTheme"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:ScreenHeader Grid.Row="0" Title="Ustawienia"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="{DynamicResource ContentMaxWidth}" VerticalAlignment="Center">
+
+                <TextBlock Text="Rozmiar tekstu" Style="{StaticResource SectionText}"/>
+
+                <Grid Margin="0,0,0,24" HorizontalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition MinWidth="140"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="−" MinWidth="80"
+                            AutomationProperties.Name="Zmniejsz tekst"
+                            Command="{Binding DecreaseTextCommand}"/>
+
+                    <TextBlock Grid.Column="1" Text="{Binding TextScaleLabel}"
+                               Style="{StaticResource HeadingText}"
+                               Margin="0" VerticalAlignment="Center"/>
+
+                    <Button Grid.Column="2" Content="+" MinWidth="80"
+                            AutomationProperties.Name="Powiększ tekst"
+                            Command="{Binding IncreaseTextCommand}"/>
+                </Grid>
+
+                <TextBlock Text="Motyw kolorystyczny" Style="{StaticResource SectionText}"/>
+
+                <UniformGrid Columns="3" Margin="-4,0,-4,24">
+                    <RadioButton Style="{StaticResource ChoiceChip}" GroupName="ColorTheme"
+                 IsChecked="{Binding ColorTheme, Mode=TwoWay,
+                             Converter={StaticResource EnumToBool},
+                             ConverterParameter={x:Static models:ColorTheme.Light}}">
+                        <TextBlock Text="Jasny" Style="{StaticResource SectionText}"
+                   Margin="0" TextAlignment="Center"/>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource ChoiceChip}" GroupName="ColorTheme"
+                 IsChecked="{Binding ColorTheme, Mode=TwoWay,
+                             Converter={StaticResource EnumToBool},
+                             ConverterParameter={x:Static models:ColorTheme.Dark}}">
+                        <TextBlock Text="Ciemny" Style="{StaticResource SectionText}"
+                   Margin="0" TextAlignment="Center"/>
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource ChoiceChip}" GroupName="ColorTheme"
+                 IsChecked="{Binding ColorTheme, Mode=TwoWay,
+                             Converter={StaticResource EnumToBool},
+                             ConverterParameter={x:Static models:ColorTheme.HighContrast}}">
+                        <TextBlock Text="Wysoki kontrast" Style="{StaticResource SectionText}"
+                   Margin="0" TextAlignment="Center"/>
+                    </RadioButton>
+                </UniformGrid>
+
+                <TextBlock Text="Nazwa komputera" Style="{StaticResource SectionText}"/>
+
+                <TextBox Text="{Binding DeviceName, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.Name="Nazwa komputera"
+                         Margin="0,0,0,8">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding NextCommand}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+
+                <TextBlock Text="Na przykład: Komputer w salonie albo Laptop Ani"
+                           Style="{StaticResource SecondaryText}"
+                           Margin="0,0,0,16"/>
+
+                <controls:ErrorBanner Message="{Binding ErrorMessage}"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <controls:NavigationButtons Grid.Row="2" Margin="0,16,0,0"
+            NextText="Zapisz i wróć"
+            BackCommand="{Binding BackCommand}"
+            NextCommand="{Binding NextCommand}"/>
+    </Grid>
+</UserControl>

@@ -17,6 +17,7 @@ using System.Windows;
 using System.Windows.Markup;
 using PhoneBrowser.Desktop.Models;
 using PhoneBrowser.Desktop.Services.Connection;
+using PhoneBrowser.Desktop.Services.Appearance;
 
 /// <summary>
 /// Interaction logic for App.xaml
@@ -66,6 +67,7 @@ public partial class App : Application
 
         services.AddSingleton<ILocalStore, LiteDbLocalStore>();
         services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IAppearanceService, AppearanceService>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<PairedDevice>();
         services.AddSingleton<TransferDraft>();
@@ -78,6 +80,7 @@ public partial class App : Application
         services.AddTransient<IPhotoSourceService, HttpPhotoSourceService>();
 
         services.AddTransient<InitialConfigurationViewModel>();
+        services.AddTransient<SettingsViewModel>();
         services.AddTransient<HomeViewModel>();
         services.AddTransient<PairingViewModel>();
         services.AddTransient<PhotoGalleryViewModel>();
@@ -85,6 +88,14 @@ public partial class App : Application
         services.AddTransient<TransferViewModel>();
 
         Services = services.BuildServiceProvider();
+
+        var store = Services.GetRequiredService<ILocalStore>();
+
+        var startupSettings = store.HasSettingsProfile()
+            ? store.GetSettingsProfile()
+            : new SettingsProfile();
+
+        Services.GetRequiredService<IAppearanceService>().ApplyAll(startupSettings);
 
         var window = new MainWindow
         {

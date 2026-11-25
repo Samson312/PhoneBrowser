@@ -1,0 +1,31 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="TitleBarBrush" Color="#1A1A1A"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#000000"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFFFFF"/>
+
+    <SolidColorBrush x:Key="AccentBrush" Color="#FFD400"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFEE70"/>
+    <SolidColorBrush x:Key="AccentSubtleBrush" Color="#1A1A00"/>
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#000000"/>
+
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#FFFFFF"/>
+
+    <SolidColorBrush x:Key="DisabledSurfaceBrush" Color="#000000"/>
+    <SolidColorBrush x:Key="DisabledBorderBrush" Color="#808080"/>
+
+    <SolidColorBrush x:Key="PrimaryDisabledBackgroundBrush" Color="#1A1A1A"/>
+    <SolidColorBrush x:Key="PrimaryDisabledBorderBrush" Color="#808080"/>
+    <SolidColorBrush x:Key="PrimaryDisabledTextBrush" Color="#C0C0C0"/>
+
+    <SolidColorBrush x:Key="DayHeaderBackgroundBrush" Color="#1A1A1A"/>
+    <SolidColorBrush x:Key="PlaceholderBrush" Color="#333333"/>
+
+    <SolidColorBrush x:Key="SuccessTextBrush" Color="#00FF7F"/>
+
+    <SolidColorBrush x:Key="ErrorTextBrush" Color="#FF9999"/>
+    <SolidColorBrush x:Key="ErrorBorderBrush" Color="#FF5555"/>
+    <SolidColorBrush x:Key="ErrorSurfaceBrush" Color="#000000"/>
+</ResourceDictionary>

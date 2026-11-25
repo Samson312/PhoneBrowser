@@ -18,7 +18,7 @@
             Subtitle="Nazwa pokaże się na telefonie, dzięki czemu łatwo rozpoznasz, z którym komputerem się łączysz. Możesz ją zmienić później."/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel MaxWidth="620" VerticalAlignment="Center">
+            <StackPanel MaxWidth="{DynamicResource ContentMaxWidth}" VerticalAlignment="Center">
                 <TextBlock Text="Nazwa komputera" Style="{StaticResource SectionText}"/>
 
                 <TextBox Text="{Binding DeviceName, UpdateSourceTrigger=PropertyChanged}"

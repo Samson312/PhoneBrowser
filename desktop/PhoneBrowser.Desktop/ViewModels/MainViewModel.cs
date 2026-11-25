@@ -1,12 +1,15 @@
 ﻿namespace PhoneBrowser.Desktop.ViewModels;
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using PhoneBrowser.Desktop.Services.Navigation;
 using PhoneBrowser.Desktop.Storage;
 
 public partial class MainViewModel : ViewModelBase
 {
+    private readonly INavigationService navigation;
+
     [ObservableProperty]
     private ViewModelBase? currentViewModel;
 
@@ -15,6 +18,7 @@ public partial class MainViewModel : ViewModelBase
         ILocalStore store,
         ILogger<MainViewModel> logger)
     {
+        this.navigation = navigation;
         navigation.CurrentViewModelChanged += vm => CurrentViewModel = vm;
 
         bool hasProfile;
@@ -36,5 +40,13 @@ public partial class MainViewModel : ViewModelBase
         {
             navigation.NavigateTo<InitialConfigurationViewModel>();
         }
+    }
+
+    [RelayCommand]
+    private void OpenSettings()
+    {
+        if (CurrentViewModel is SettingsViewModel) return;
+
+        navigation.NavigateTo<SettingsViewModel>();
     }
 }
