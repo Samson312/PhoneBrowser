@@ -40,6 +40,7 @@ public class AppearanceService : IAppearanceService
     public void ApplyAll(SettingsProfile settings)
     {
         ApplyTextScale(settings.TextScale);
+        ApplyControlScale(settings.TextScale);
         ApplyTheme(settings.ColorTheme);
     }
 
@@ -49,8 +50,6 @@ public class AppearanceService : IAppearanceService
 
         foreach (var (key, size) in BaseTextSizes)
             Application.Current.Resources[key] = Math.Round(size * scale);
-
-        ApplyControlScale(requested);
 
         return scale;
     }

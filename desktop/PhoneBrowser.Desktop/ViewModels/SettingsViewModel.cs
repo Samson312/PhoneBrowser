@@ -61,8 +61,12 @@ public partial class SettingsViewModel : ViewModelBase
 
     partial void OnColorThemeChanged(ColorTheme value) => appearance.ApplyTheme(value);
 
-    private void ChangeTextScale(double delta) =>
+    private void ChangeTextScale(double delta)
+    {
         TextScale = appearance.ApplyTextScale(TextScale + delta);
+        appearance.ApplyControlScale(TextScale + delta);
+    }
+        
 
     private InitialConfigError SaveData()
     {

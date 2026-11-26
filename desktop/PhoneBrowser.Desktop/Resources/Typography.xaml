@@ -59,10 +59,4 @@
     <Style x:Key="StatusText" TargetType="TextBlock" BasedOn="{StaticResource SecondaryText}">
         <Setter Property="Margin" Value="0,2,0,0"/>
     </Style>
-
-    <Style TargetType="TextBox">
-        <Setter Property="MinHeight" Value="44"/>
-        <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-    </Style>
 </ResourceDictionary>
