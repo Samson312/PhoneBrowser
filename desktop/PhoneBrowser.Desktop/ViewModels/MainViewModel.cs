@@ -45,7 +45,7 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void OpenSettings()
     {
-        if (CurrentViewModel is SettingsViewModel) return;
+        if (CurrentViewModel is (SettingsViewModel or TransferViewModel)) return;
 
         navigation.NavigateTo<SettingsViewModel>();
     }
