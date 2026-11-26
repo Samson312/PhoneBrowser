@@ -13,7 +13,7 @@
         </Style>
     </UserControl.Style>
     
-    <Border Padding="12,8" BorderBrush="{StaticResource ErrorBorderBrush}" BorderThickness="2">
+    <Border Padding="12,8" BorderBrush="{DynamicResource ErrorBorderBrush}" BorderThickness="2">
         <Border.Style>
             <Style TargetType="Border">
                 <Setter Property="Visibility" Value="Visible"/>
@@ -26,15 +26,15 @@
         </Border.Style>
 
         <StackPanel Orientation="Horizontal">
-            <TextBlock Text="⚠" FontSize="{StaticResource FontSizeTitle}" Foreground="{StaticResource ErrorTextBrush}"
+            <TextBlock Text="⚠" FontSize="{DynamicResource FontSizeTitle}" Foreground="{DynamicResource ErrorTextBrush}"
                        VerticalAlignment="Center" Margin="0,0,4,0"/>
             <StackPanel>
                 <TextBlock Text="{Binding Message.Title, ElementName=root}"
-                           Foreground="{StaticResource ErrorTextBrush}"
-                           Style="{StaticResource SectionText}"/>
+                           Foreground="{DynamicResource ErrorTextBrush}"
+                           Style="{DynamicResource SectionText}"/>
                 <TextBlock Text="{Binding Message.Hint, ElementName=root}"
-                           Foreground="{StaticResource ErrorTextBrush}"
-                           Style="{StaticResource SecondaryText}"
+                           Foreground="{DynamicResource ErrorTextBrush}"
+                           Style="{DynamicResource SecondaryText}"
                            Margin="0,2,0,0"/>
             </StackPanel>
         </StackPanel>
